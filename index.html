@@ -1261,13 +1261,13 @@ var APPS = [
   { id: 'money', n: '记账', c: 'linear-gradient(135deg,#34D399,#A3E635)', ic: '<rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M2.5 10.5h19M6.5 15h3"/>' },
   { id: 'journal', n: '感悟', c: 'linear-gradient(135deg,#FF62AD,#A78BFA)', ic: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18v18H6.5A1.5 1.5 0 0 1 5 19.5z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>' },
   { id: 'habit', n: '习惯', c: 'linear-gradient(135deg,#4ADE80,#22D3EE)', ic: '<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v5h-5"/>' },
-  { id: 'countdown', n: '倒数日', c: 'linear-gradient(135deg,#FBBF24,#FB7185)', ic: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>' },
+  { id: 'countdown', n: '事件提醒', c: 'linear-gradient(135deg,#FBBF24,#FB7185)', ic: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>' },
   { id: 'weather', n: '天气', c: 'linear-gradient(135deg,#60A5FA,#A78BFA)', ic: '<circle cx="8.5" cy="8" r="3"/><path d="M8.5 2.6v1.3M3.6 8h1.3M5.1 4.6l.9.9M11.9 4.6l-.9.9"/><path d="M9.5 20h8a3.4 3.4 0 0 0 .3-6.8A4.6 4.6 0 0 0 9.6 12 3.2 3.2 0 0 0 9.5 20z"/>' },
   { id: 'note', n: '速记', c: 'linear-gradient(135deg,#94A3B8,#CBD5E1)', ic: '<path d="M4 6h16M4 12h16M4 18h10"/>' },
   { id: 'schulte', n: '舒尔特', c: 'linear-gradient(135deg,#818CF8,#F472B6)', ic: '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 9h2.5v2.5H9zM12.5 12.5H15V15h-2.5z"/>' },
   { id: 'breath', n: '呼吸', c: 'linear-gradient(135deg,#22D3EE,#818CF8)', ic: '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.6"/>' },
   { id: 'tools', n: '工具箱', c: 'linear-gradient(135deg,#64748B,#475569)', ic: '<path d="M14.5 6.5a3.5 3.5 0 0 0 4.7 4.7l-9.4 9.4a2.6 2.6 0 1 1-3.7-3.7z"/><path d="M15.5 3.5L18 1.5l4 4-2 2"/>' },
-  { id: 'achieve', n: '成就', c: 'linear-gradient(135deg,#FBBF24,#F97316)', ic: '<circle cx="12" cy="9" r="5.6"/><path d="M8.6 13.8L7.5 22l4.5-2.4L16.5 22l-1.1-8.2"/>' },
+  { id: 'achieve', n: '积分', c: 'linear-gradient(135deg,#FBBF24,#F97316)', ic: '<circle cx="12" cy="9" r="5.6"/><path d="M8.6 13.8L7.5 22l4.5-2.4L16.5 22l-1.1-8.2"/>' },
   { id: 'water', n: '喝水', c: 'linear-gradient(135deg,#38BDF8,#0EA5E9)', ic: '<path d="M12 3s6 6.6 6 10.6A6 6 0 0 1 6 13.6C6 9.6 12 3 12 3z"/>' }
 ];
 var EXTRA = [
@@ -2089,9 +2089,9 @@ function habitDlg(id) {
   });
 }
 
-/* ============ 应用：倒数日 ============ */
+/* ============ 应用：事件提醒 ============ */
 function appCountdown() {
-  openSheet('countdown', '倒数日', '', { onMount: drawCd, foot: '<button class="btn" id="cdQ">快捷</button><button class="btn primary" id="cdA">+ 添加</button>' });
+  openSheet('countdown', '事件提醒', '', { onMount: drawCd, foot: '<button class="btn" id="cdQ">快捷</button><button class="btn primary" id="cdA">+ 添加</button>' });
   var a = $('#cdA'), q = $('#cdQ');
   if (a) a.onclick = cdDlg;
   if (q) q.onclick = cdQuick;
@@ -2135,7 +2135,7 @@ function cdQuick() {
 }
 function cdDlg() {
   openDlg({
-    title: '添加倒数日', sub: '生日、考试、旅行…',
+    title: '添加事件提醒', sub: '生日、考试、旅行…',
     body: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fld"><label>名称</label><input class="inp" id="cn" placeholder="例如：妈妈生日" maxlength="16"></div>' +
       '<div class="fld"><label>日期</label><input type="date" class="inp" id="cd" value="' + today() + '"></div></div>' +
       '<div class="fld" style="margin-top:12px"><label>图标</label><div class="segline sm" id="ce">' +
@@ -2887,7 +2887,7 @@ function achPoints(days) {
   return { p: p, n: n };
 }
 function appAchieve() {
-  openSheet('achieve', '成就', '', { onMount: drawAchieve });
+  openSheet('achieve', '积分', '', { onMount: drawAchieve });
 }
 function drawAchieve() {
   var all = allDays();
@@ -3280,7 +3280,7 @@ function renderMine() {
   ];
   $('#p-mine').innerHTML =
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
-    '<span class="sp"><button class="mini" id="mAch">成就</button></span></div>' +
+    '<span class="sp"><button class="mini" id="mAch">积分</button></span></div>' +
     '<div class="card tight profile" style="margin-bottom:9px">' +
     '<span class="avatar">' + (st.avatar || '🌗') + '</span>' +
     '<div style="flex:1;min-width:0"><b style="font-size:16.5px;font-weight:670">' + esc(st.name || '未设置昵称') + '</b>' +
@@ -3293,7 +3293,7 @@ function renderMine() {
     '<div style="flex:1;background:var(--surf2);border-radius:13px;padding:9px 4px;text-align:center"><span class="xs mut" style="display:block">成就点</span><b style="font-size:19px;font-weight:670;color:var(--warn)">' + ach.p + '</b></div>' +
     '<div style="flex:1;background:var(--surf2);border-radius:13px;padding:9px 4px;text-align:center"><span class="xs mut" style="display:block">完成事项</span><b style="font-size:19px;font-weight:670">' + ach.n + '</b></div>' +
     '<div style="flex:1;background:var(--surf2);border-radius:13px;padding:9px 4px;text-align:center"><span class="xs mut" style="display:block">习惯</span><b style="font-size:19px;font-weight:670">' + S.habits.length + '</b></div>' +
-    '<div style="flex:1;background:var(--surf2);border-radius:13px;padding:9px 4px;text-align:center"><span class="xs mut" style="display:block">倒数日</span><b style="font-size:19px;font-weight:670">' + S.events.length + '</b></div>' +
+    '<div style="flex:1;background:var(--surf2);border-radius:13px;padding:9px 4px;text-align:center"><span class="xs mut" style="display:block">事件提醒</span><b style="font-size:19px;font-weight:670">' + S.events.length + '</b></div>' +
     '</div>' +
     '<div class="card tight" style="flex:1;min-height:0;display:flex;flex-direction:column">' +
     '<div class="ch" style="margin-bottom:8px"><h3>设置</h3></div>' +
@@ -3405,9 +3405,9 @@ function taskSetDlg() {
   openDlg({
     title: '任务与排序', sub: '星级对应数值 1 / 3 / 5 / 15 / 50',
     body: '<div class="fld"><label>默认排序</label><div class="segline sm" id="ts"> ' +
-      [['prio', '综合'], ['imp', '重要性'], ['urg', '紧迫性'], ['diff', '难度'], ['ach', '成就值'], ['due', '截止日'], ['new', '最新']].map(function (o) { return '<button data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div></div>' +
+      [['prio', '综合'], ['imp', '重要性'], ['urg', '紧迫性'], ['diff', '难度'], ['ach', '积分'], ['due', '截止日'], ['new', '最新']].map(function (o) { return '<button data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="sep"></div>' +
-      '<div class="hint">• 优先级 = <b>重要性 × 紧迫性</b>，决定先做哪件<br>• 成就值 = <b>重要性 × 难度</b>，决定这件事值多少分<br>• 每颗星都有对应数值（1、3、5、15、50），也可以直接填任意数字<br>• 编辑任务时可以分别调整三个维度</div>',
+      '<div class="hint">• 优先级 = <b>重要性 × 紧迫性</b>，决定先做哪件<br>• 积分 = <b>重要性 × 难度</b>，决定这件事值多少分<br>• 每颗星都有对应数值（1、3、5、15、50），也可以直接填任意数字<br>• 编辑任务时可以分别调整三个维度</div>',
     ok: false,
     onOpen: function () { bindSeg('#ts', S.settings.taskSort, function (v) { S.settings.taskSort = v; save(); }); }
   });
@@ -4317,7 +4317,7 @@ function drawTasks() {
   $('#tkChart').onclick = function () {
     chartDlg({
       title: '任务成就对比', unit: ' 分', color: 'var(--ach)', gran: 'd', range: 30, agg: 'sum',
-      sub: '每天完成任务拿到的成就值（∛重要性 × 难度 × 完成质量）',
+      sub: '每天完成任务拿到的积分（∛重要性 × 难度 × 完成质量）',
       fn: function (k) { return dayAchBreak(k).task; }
     });
   };
@@ -4544,10 +4544,10 @@ function drawTaskStat() {
     ['完成 ' + done.length + '/' + d.todos.length, '成就 ' + r1(ach), '全清 ' + streak + '天'].map(function (t) {
       return '<span class="tag a">' + t + '</span>';
     }).join('') + '</div>' +
-    '<div class="hint" style="margin-top:8px">点右上角「?」看优先级和成就值怎么算。</div>';
+    '<div class="hint" style="margin-top:8px">点右上角「?」看优先级和积分怎么算。</div>';
 }
 
-/* ================= 专注：成就值设置 / 自定义目标 / 历史 / 对比图 ================= */
+/* ================= 专注：积分设置 / 自定义目标 / 历史 / 对比图 ================= */
 function appFocus() {
   openSheet('focus', '专注', '', {
     onMount: drawFocus,
@@ -4576,12 +4576,12 @@ function drawFocus() {
     '<div class="row"><input class="inp" type="number" id="fCus" min="1" max="600" value="' + st[FP.mode] + '" style="width:100px;height:40px;flex:0 0 auto;text-align:center"><button class="btn sm" id="fApply" style="flex:1">应用为「' + (FP.mode === 'focus' ? '专注' : FP.mode === 'short' ? '短休' : '长休') + '」时长</button></div>' +
     '<div class="fld" style="margin-top:11px"><label>每日目标时长（分钟）</label><input class="inp" type="number" id="fGoal" min="1" max="1440" value="' + goal + '" style="text-align:center"></div>' +
     '</div>' +
-    '<div class="card" style="margin-top:10px"><div class="ch"><h3>成就值</h3><span class="sp"><b class="ach" style="font-size:14px">' + r1(achSeg) + ' 分/段</b></span></div>' +
+    '<div class="card" style="margin-top:10px"><div class="ch"><h3>积分</h3><span class="sp"><b class="ach" style="font-size:14px">' + r1(achSeg) + ' 分/段</b></span></div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
     '<div class="fld"><label>每完成一段</label><input class="inp" type="number" id="fAchS" min="0" max="999" step="1" value="' + achSeg + '" style="text-align:center"></div>' +
     '<div class="fld"><label>每分钟额外</label><input class="inp" type="number" id="fAchM" min="0" max="99" step="0.5" value="' + achMin + '" style="text-align:center"></div></div>' +
     '<button class="btn sm wide" id="fAchSave" style="margin-top:10px">保存成就设置</button>' +
-    '<div class="hint" style="margin-top:8px">完成一段 25 分钟可得 <b class="ach">' + r1(achSeg + 25 * achMin) + '</b> 分成就值，会计入当天成就与可兑换金额。</div>' +
+    '<div class="hint" style="margin-top:8px">完成一段 25 分钟可得 <b class="ach">' + r1(achSeg + 25 * achMin) + '</b> 分积分，会计入当天成就与可兑换金额。</div>' +
     '</div>' +
     '<div class="card" style="margin-top:10px"><div class="ch"><h3>背景白噪音</h3></div>' +
     '<div class="noise" id="fNoise"><button data-n="off">关闭</button><button data-n="rain">雨声</button><button data-n="wind">风声</button><button data-n="cafe">咖啡馆</button></div>' +
@@ -4601,8 +4601,8 @@ function drawFocus() {
   $('#fApply').onclick = function () { setFLen(clamp(Math.round(num($('#fCus').value, 25)), 1, 600)); };
   $('#fGoal').onchange = function () { st.focusGoal = clamp(Math.round(num($('#fGoal').value, 100)), 1, 1440); save(); drawFocus(); };
   $('#fAchSave').onclick = function () {
-    st.achPerFocus = clamp(num($('#fAchS').value, 10), 0, 999);
-    st.achPerMin = clamp(num($('#fAchM').value, 0), 0, 99);
+    st.achPerFocus = clamp(num($('#fAchS').value, 10), -99999, 999);
+    st.achPerMin = clamp(num($('#fAchM').value, 0), -99999, 99);
     save(); drawFocus(); toast('成就设置已保存');
   };
   $('#fTg').onclick = fToggle;
@@ -4683,14 +4683,14 @@ function focusEditAt(key) {
     title: '修改这段专注', sub: relLabel(p[0]),
     body: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       '<div class="fld"><label>时长（分钟）</label><input class="inp" type="number" id="feM" value="' + f.min + '" min="1"></div>' +
-      '<div class="fld"><label>成就值</label><input class="inp" type="number" id="feA" value="' + r1(focusAchOf(f)) + '" min="0" step="1"></div></div>' +
+      '<div class="fld"><label>积分</label><input class="inp" type="number" id="feA" value="' + r1(focusAchOf(f)) + '" min="0" step="1"></div></div>' +
       '<div class="fld" style="margin-top:11px"><label>做了什么</label><input class="inp" id="feW" value="' + esc(f.task || '') + '"></div>' +
       '<div class="fld" style="margin-top:11px"><label>归属日期</label><input type="date" class="inp" id="feD" value="' + p[0] + '"></div>',
     ok: '保存', onOk: function () {
       guardPast(function () {
         var nm = clamp(Math.round(num($('#feM').value, f.min)), 1, 1440);
         f.min = nm; f.task = $('#feW').value.trim();
-        f.ach = clamp(num($('#feA').value, 0), 0, 99999);
+        f.ach = clamp(num($('#feA').value, 0), -99999, 99999);
         var nd = $('#feD').value;
         if (nd && nd !== p[0]) {
           x.focus = x.focus.filter(function (q) { return q !== f; });
@@ -4919,7 +4919,7 @@ function habitDlg(id) {
     ach: h ? habitAchOf(h) : 5
   };
   openDlg({
-    title: h ? '编辑习惯' : '新习惯', sub: '可设置频率、次数与完成后的成就值',
+    title: h ? '编辑习惯' : '新习惯', sub: '可设置频率、次数与完成后的积分',
     body: '<div class="fld"><label>名称</label><input class="inp" id="hn" value="' + esc(tmp.name) + '" placeholder="例如：喝水 2L" maxlength="20"></div>' +
       '<div class="fld" style="margin-top:12px"><label>图标</label><div class="tagpick" id="hi">' +
       EMO.map(function (e) { return '<button data-e="' + e + '"' + (tmp.icon === e ? ' class="on"' : '') + ' style="font-size:19px">' + e + '</button>'; }).join('') + '</div></div>' +
@@ -4934,7 +4934,7 @@ function habitDlg(id) {
       var n = $('#hn').value.trim();
       if (!n) { toast('名称不能为空', 'err'); return false; }
       var t3 = clamp(Math.round(num($('#ht').value, 1)), 1, 20);
-      var a3 = clamp(num($('#ha').value, 5), 0, 999);
+      var a3 = clamp(num($('#ha').value, 5), -99999, 999);
       var f3 = ($('#hfr .on') || {}).dataset ? $('#hfr .on').dataset.v : 'day';
       if (h) { h.name = n; h.icon = tmp.icon; h.freq = f3; h.times = t3; h.ach = a3; }
       else S.habits.push({ id: uid(), name: n, icon: tmp.icon, freq: f3, times: t3, ach: a3, createdAt: Date.now() });
@@ -5172,7 +5172,7 @@ function drawSchulteHistOnly() {
 }
 
 /* ================= 成就：日期 / 明细 / 历史 / 对比图 / 额外成就 ================= */
-function appAchieve() { openSheet('achieve', '成就', '', { onMount: drawAchieve }); }
+function appAchieve() { openSheet('achieve', '积分', '', { onMount: drawAchieve }); }
 function drawAchieve() {
   var b = dayAchBreak(CUR);
   var ta = achPoints([CUR]);
@@ -5209,10 +5209,10 @@ function drawAchieve() {
   dateBar('aDays', drawAchieve);
   $('#axAdd').onclick = function () {
     var v = num($('#axV').value, 0);
-    if (!(v > 0)) { toast('请输入成就值', 'err'); return; }
+    if (!(v > 0)) { toast('请输入积分', 'err'); return; }
     S.extra = S.extra || [];
     S.extra.push({ id: uid(), day: CUR, val: v, note: $('#axN').value.trim(), at: Date.now() });
-    save(); chimeSoft(); drawAchieve(); toast('已添加 +' + r1(v) + ' 成就');
+    save(); chimeSoft(); drawAchieve(); toast('已添加 ' + (v > 0 ? '+' : '') + r1(v) + ' 积分');
   };
   $('#axV').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#axAdd').click(); });
   histBind('#shBody', null, function (id) {
@@ -5233,7 +5233,7 @@ function drawAchieve() {
   $('#akChart').onclick = function () {
     chartDlg({
       title: '成就对比', unit: ' 分', color: 'var(--ach)', gran: 'd', range: 30, agg: 'sum',
-      sub: '每天拿到多少成就值（任务 + 专注 + 习惯 + 额外）',
+      sub: '每天拿到多少积分（任务 + 专注 + 习惯 + 额外）',
       fn: function (k) { return dayAchBreak(k).total; }
     });
   };
@@ -5248,7 +5248,7 @@ function drawAchieve() {
 }
 
 /* ================= 数据页：日期板块 + 成就指标 + 按所选日期回溯 ================= */
-METRICS.push({ id: 'ach', n: '成就', unit: ' 分', c: '#22C55E' });
+METRICS.push({ id: 'ach', n: '积分', unit: ' 分', c: '#22C55E' });
 function metricVal(k, m) {
   if (m === 'ach') return dayAchBreak(k).total;
   if (m === 'habit') { if (!S.habits.length) return 0; return S.habits.filter(function (h) { return habitDoneOn(h, k); }).length / S.habits.length * 100; }
@@ -5321,7 +5321,7 @@ function renderMine() {
   ];
   $('#p-mine').innerHTML =
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
-    '<span class="sp"><button class="mini" id="mAch">成就</button><button class="mini" id="mEdit">资料</button></span></div>' +
+    '<span class="sp"><button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="balcard" style="margin-bottom:8px">' +
     '<div class="spread"><span class="xs mut" style="font-weight:600">总余额</span>' +
@@ -5345,15 +5345,15 @@ function renderMine() {
     '<input class="inp" id="qsNote" placeholder="备注，如：午饭" maxlength="20" style="flex:1">' +
     '<button class="btn sm" id="qsSave" style="height:40px;flex:0 0 auto;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)">记支出</button></div>' +
     '<div class="quickin">' +
-    '<input class="inp" type="number" id="qaV" placeholder="成就值" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
+    '<input class="inp" type="number" id="qaV" placeholder="积分" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
     '<input class="inp" id="qaN" placeholder="额外成就备注，如：坚持早起" maxlength="20" style="flex:1">' +
     '<button class="sqbtn" id="qaAdd" style="background:linear-gradient(135deg,var(--ach),color-mix(in srgb,var(--ach) 50%,var(--a2)));border-color:transparent;color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>' +
     '</div>' +
 
     '<div class="card tight" style="margin-bottom:8px">' +
     '<div class="ch" style="margin-bottom:7px"><h3>成就兑换</h3><span class="sp"><button class="mini" id="exSet">设置比率</button></span></div>' +
-    '<div class="row" style="gap:8px"><div style="flex:1" class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 成就值 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b>' +
-    '<div class="xs mut2">兑换后成就值消耗，余额增加</div></div>' +
+    '<div class="row" style="gap:8px"><div style="flex:1" class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 积分 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b>' +
+    '<div class="xs mut2">兑换后积分消耗，余额增加</div></div>' +
     '<button class="btn sm primary" id="exGo" style="flex:0 0 auto;height:38px">一键兑换</button></div>' +
     '</div>' +
 
@@ -5405,18 +5405,18 @@ function quickSpend() {
 }
 function quickExtraAch() {
   var v = num($('#qaV').value, 0);
-  if (!(v > 0)) { toast('请输入成就值', 'err'); return; }
+  if (!v) { toast('请输入积分（可填负数扣分）', 'err'); return; }
   S.extra = S.extra || [];
   S.extra.push({ id: uid(), day: CUR, val: v, note: $('#qaN').value.trim(), at: Date.now() });
-  save(); chimeSoft(); toast('已添加 +' + r1(v) + ' 成就');
+  save(); chimeSoft(); toast('已添加 ' + (v > 0 ? '+' : '') + r1(v) + ' 积分');
   renderMine(); if (curTab === 'home') renderHome();
 }
 function exchangeDlg() {
   var st = S.settings;
   openDlg({
-    title: '兑换设置', sub: '成就值换成多少钱，完全由你定',
+    title: '兑换设置', sub: '积分换成多少钱，完全由你定',
     body: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-      '<div class="fld"><label>每多少成就值</label><input class="inp" type="number" id="xr" value="' + num(st.exRate, 10) + '" min="1" step="1" style="text-align:center"></div>' +
+      '<div class="fld"><label>每多少积分</label><input class="inp" type="number" id="xr" value="' + num(st.exRate, 10) + '" min="1" step="1" style="text-align:center"></div>' +
       '<div class="fld"><label>兑换多少元</label><input class="inp" type="number" id="xm" value="' + num(st.exMoney, 1) + '" min="0" step="0.5" style="text-align:center"></div></div>' +
       '<div class="fld" style="margin-top:12px"><label>初始余额（元）</label><input class="inp" type="number" id="xi" value="' + num(st.initBalance, 0) + '" step="1" style="text-align:center"></div>' +
       '<div class="hint" style="margin-top:10px">余额 = 初始余额 + 兑换所得 + 记账收入 − 记账支出。</div>',
@@ -5430,9 +5430,9 @@ function exchangeDlg() {
 }
 function doExchange() {
   var a = availAch();
-  if (!(a > 0)) { toast('还没有可兑换的成就值', 'err'); return; }
+  if (!(a > 0)) { toast('还没有可兑换的积分', 'err'); return; }
   var m = achToMoney(a);
-  confirmBox('兑换 ' + r1(a) + ' 成就值', '可得 ¥' + money(m) + '，兑换后这些成就值将被消耗', function () {
+  confirmBox('兑换 ' + r1(a) + ' 积分', '可得 ¥' + money(m) + '，兑换后这些积分将被消耗', function () {
     S.exchange = S.exchange || [];
     S.exchange.push({ id: uid(), at: Date.now(), day: CUR, ach: a, money: m });
     save(); chime(); confetti(); renderMine();
@@ -5602,10 +5602,10 @@ function sleepSetDlg() {
     body: '<div class="form">' +
       '<label>最佳时长下限（小时）</label><input class="inp" id="spL" type="number" step="0.5" value="' + c.bestLow + '">' +
       '<label>最佳时长上限（小时）</label><input class="inp" id="spH" type="number" step="0.5" value="' + c.bestHigh + '">' +
-      '<label>时长达标得成就值</label><input class="inp" id="spA" type="number" step="1" value="' + c.durAch + '">' +
+      '<label>时长达标得积分</label><input class="inp" id="spA" type="number" step="1" value="' + c.durAch + '">' +
       '<label>每差半小时扣</label><input class="inp" id="spP" type="number" step="0.5" value="' + c.durPen + '">' +
       '<label>最佳起床时间（点）</label><input class="inp" id="swB" type="number" step="0.5" value="' + c.wakeBest + '">' +
-      '<label>起床达标得成就值</label><input class="inp" id="swA" type="number" step="1" value="' + c.wakeAch + '">' +
+      '<label>起床达标得积分</label><input class="inp" id="swA" type="number" step="1" value="' + c.wakeAch + '">' +
       '<label>此后每多半小时扣</label><input class="inp" id="swP" type="number" step="0.5" value="' + c.wakePen + '">' +
       '<div class="xs mut2" style="line-height:1.7">例：睡 7~8.5 小时且 8 点前起 → 拿满 ' + c.durAch + '+' + c.wakeAch + ' 分；睡 6 小时扣 ' + (c.durPen * 2) + ' 分。</div>' +
       '</div>',
@@ -5704,7 +5704,7 @@ function sleepDel(k) {
   }, '删除');
 }
 
-/* ---------- 成就值 / 金额 视觉（后加载优先） ---------- */
+/* ---------- 积分 / 金额 视觉（后加载优先） ---------- */
 (function () {
   var s = document.createElement('style');
   s.textContent = [
@@ -5972,7 +5972,7 @@ function appTask() {
 function taskChartDlg() {
   chartDlg({
     title: '任务成就对比', unit: '', color: 'var(--ach)', gran: 'd', range: 30, agg: 'sum',
-    sub: '每天完成任务拿到的成就值',
+    sub: '每天完成任务拿到的积分',
     fn: function (k) { return peek(k).todos.reduce(function (a, t) { return a + taskAch(t); }, 0); }
   });
 }
@@ -6068,13 +6068,13 @@ function appSleep() {
   });
 }
 function appAchieve() {
-  openSheet('achieve', '成就', '', {
+  openSheet('achieve', '积分', '', {
     onMount: drawAchieve,
     actions: chartAct(),
     onAction: function (a) {
       if (a === 'chart') chartDlg({
         title: '成就对比', unit: '', color: 'var(--ach)', gran: 'd', range: 30, agg: 'sum',
-        sub: '每天拿到的成就值', fn: function (k) { return dayAchBreak(k).total; }
+        sub: '每天拿到的积分', fn: function (k) { return dayAchBreak(k).total; }
       });
     }
   });
@@ -6256,7 +6256,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
-    '<button class="mini" id="mAch">成就</button><button class="mini" id="mEdit">资料</button></span></div>' +
+    '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" style="margin-bottom:7px;padding:10px">' +
     '<span class="avatar">' + (st.avatar || '🌗') + '</span>' +
@@ -6288,15 +6288,15 @@ function renderMine() {
     '<input class="inp" id="qsNote" placeholder="备注，如：午饭" maxlength="20" style="flex:1">' +
     '<button class="btn sm" id="qsSave" style="height:40px;flex:0 0 auto;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)">记支出</button></div>' +
     '<div class="quickin">' +
-    '<input class="inp" type="number" id="qaV" placeholder="成就值" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
+    '<input class="inp" type="number" id="qaV" placeholder="积分" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
     '<input class="inp" id="qaN" placeholder="额外成就备注，如：坚持早起" maxlength="20" style="flex:1">' +
     '<button class="sqbtn" id="qaAdd" style="background:linear-gradient(135deg,var(--ach),color-mix(in srgb,var(--ach) 50%,var(--a2)));border-color:transparent;color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>' +
     '</div>' +
 
     '<div class="card tight" style="flex:1;min-height:0;padding:10px;display:flex;flex-direction:column;justify-content:center">' +
     '<div class="ch" style="margin-bottom:6px"><h3>成就兑换</h3><span class="sp"><button class="mini" id="exSet">设置比率</button></span></div>' +
-    '<div style="display:flex;gap:8px;align-items:center"><div style="flex:1;min-width:0"><div class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 成就值 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b></div>' +
-    '<div class="xs mut2">兑换后成就值消耗，余额增加</div></div>' +
+    '<div style="display:flex;gap:8px;align-items:center"><div style="flex:1;min-width:0"><div class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 积分 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b></div>' +
+    '<div class="xs mut2">兑换后积分消耗，余额增加</div></div>' +
     '<button class="btn sm primary" id="exGo" style="flex:0 0 auto;height:36px">一键兑换</button></div>' +
     '</div>';
 
@@ -6474,12 +6474,12 @@ function studyText() {
 }
 function studySetDlg() {
   openDlg({
-    title: '学习设置', sub: '成就值 = 学时 × 质量 × 兑换系数',
-    body: '<div class="fld"><label>每学时兑换成就值（系数）</label>' +
+    title: '学习设置', sub: '积分 = 学时 × 质量 × 兑换系数',
+    body: '<div class="fld"><label>每学时兑换积分（系数）</label>' +
       '<input class="inp" type="number" id="syR" step="0.5" min="0" value="' + studyRate() + '" style="text-align:center"></div>' +
       '<div class="hint" style="margin-top:10px;line-height:1.8">质量星级对应数值：' +
       [1, 2, 3, 4, 5].map(function (i) { return i + '★ = ' + QSTUDY[i]; }).join('　') +
-      '<br>例：学 2 小时、质量 4★、系数 10 → 2 × 1.3 × 10 = <b class="ach">26</b> 成就值</div>',
+      '<br>例：学 2 小时、质量 4★、系数 10 → 2 × 1.3 × 10 = <b class="ach">26</b> 积分</div>',
     ok: '保存',
     onOk: function () {
       S.settings.studyRate = clamp(num($('#syR').value, 10), 0, 9999);
@@ -6765,7 +6765,7 @@ function taskInfoDlg() {
       '<div class="achbox" style="justify-content:center"><span class="ach big">优先级 = 重要性 × 紧迫性</span></div>' +
       '<div class="xs mut2" style="margin-top:8px;line-height:1.8">数字越大越该先做。例：重要性 50（5★）× 紧迫性 15（4★）= 750。</div></div>' +
 
-      '<div class="card tight" style="margin-bottom:10px"><div class="ch"><h3>成就值</h3></div>' +
+      '<div class="card tight" style="margin-bottom:10px"><div class="ch"><h3>积分</h3></div>' +
       '<div class="achbox" style="justify-content:center"><span class="ach big">成就 = ∛重要性 × 难度 × 完成质量</span></div>' +
       '<div class="xs mut2" style="margin-top:8px;line-height:1.8">' +
       '• 开三次根是为了让「重要性」不至于把数值撑得太大。<br>' +
@@ -7060,7 +7060,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l-.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
-    '<button class="mini" id="mAch">成就</button><button class="mini" id="mEdit">资料</button></span></div>' +
+    '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" id="mProf" style="margin-bottom:8px;cursor:pointer">' +
     '<span class="avatar">' + avHtml(st) + '</span>' +
@@ -7093,7 +7093,7 @@ function renderMine() {
     '<input class="inp" id="qsNote" placeholder="备注，如：午饭" maxlength="20" style="flex:1">' +
     '<button class="btn sm" id="qsSave" style="height:40px;flex:0 0 auto;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)">记支出</button></div>' +
     '<div class="quickin">' +
-    '<input class="inp" type="number" id="qaV" placeholder="成就值" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
+    '<input class="inp" type="number" id="qaV" placeholder="积分" step="1" style="width:78px;flex:0 0 auto;text-align:center">' +
     '<input class="inp" id="qaN" placeholder="额外成就备注，如：坚持早起" maxlength="20" style="flex:1">' +
     '<button class="sqbtn" id="qaAdd" style="background:linear-gradient(135deg,var(--ach),color-mix(in srgb,var(--ach) 50%,var(--a2)));border-color:transparent;color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>' +
     '</div>' +
@@ -7101,7 +7101,7 @@ function renderMine() {
     '<div class="card tight" style="flex:1;min-height:0;padding:10px;display:flex;flex-direction:column;justify-content:center">' +
     '<div class="ch" style="margin-bottom:6px"><h3>兑换比率</h3><span class="sp"><button class="mini" id="exSet">设置</button></span></div>' +
     '<div style="display:flex;gap:8px;align-items:center"><div style="flex:1;min-width:0">' +
-    '<div class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 成就值 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b></div>' +
+    '<div class="sm mut">每 <b class="ach">' + r1(num(st.exRate, 10)) + '</b> 积分 <span class="mut2">兑换</span> <b class="gold">¥' + money(num(st.exMoney, 1)) + '</b></div>' +
     '<div class="xs mut2">余额随成就实时变化；花钱只减余额，不会扣掉已获得的成就</div></div></div>' +
     '</div>';
 
@@ -7119,11 +7119,11 @@ function exchangeDlg() {
   openDlg({
     title: '兑换比率', sub: '余额 = 全部成就的对应金额 + 收入 − 支出',
     body: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-      '<div class="fld"><label>每多少成就值</label><input class="inp" type="number" id="exR" step="1" min="1" value="' + num(st.exRate, 10) + '" style="text-align:center"></div>' +
+      '<div class="fld"><label>每多少积分</label><input class="inp" type="number" id="exR" step="1" min="1" value="' + num(st.exRate, 10) + '" style="text-align:center"></div>' +
       '<div class="fld"><label>兑换多少钱（¥）</label><input class="inp" type="number" id="exM" step="0.5" min="0" value="' + num(st.exMoney, 1) + '" style="text-align:center"></div></div>' +
       '<div class="achbox" style="margin-top:12px"><span class="xs mut">按当前</span><span class="ach big">¥' + money(achToMoney(totalAch())) + '</span>' +
       '<span class="gold">累计 ' + r1(totalAch()) + ' 分</span></div>' +
-      '<div class="xs mut2" style="margin-top:9px;line-height:1.8">改完后余额会立刻按新比率重新计算。成就值不会被消耗，只是换算成钱的一个比例。</div>',
+      '<div class="xs mut2" style="margin-top:9px;line-height:1.8">改完后余额会立刻按新比率重新计算。积分不会被消耗，只是换算成钱的一个比例。</div>',
     ok: '保存',
     onOk: function () {
       st.exRate = Math.max(1, num($('#exR').value, 10));
@@ -7270,7 +7270,7 @@ function taskInfoBody() {
     '<div class="achbox" style="justify-content:center"><span class="ach big">优先级 = 重要性 × 紧迫性</span></div>' +
     '<div class="xs mut2" style="margin-top:8px;line-height:1.8">数越大越该先做。例：重要性 50（5★）× 紧迫性 15（4★）= <b>750</b>。</div></div>' +
 
-    '<div class="card tight" style="margin-bottom:10px"><div class="ch"><h3>成就值（完成后获得）</h3></div>' +
+    '<div class="card tight" style="margin-bottom:10px"><div class="ch"><h3>积分（完成后获得）</h3></div>' +
     '<div class="achbox" style="justify-content:center"><span class="ach big">成就 = ∛重要性 × 难度 × 完成质量</span></div>' +
     '<div class="xs mut2" style="margin-top:8px;line-height:1.8">' +
     '开三次根是为了让「重要性」不至于把数值撑得太大。<br>' +
@@ -7467,7 +7467,7 @@ function cropCircle(dataUrl, size, cb) {
 
 /* ================= 1. 数据页：去心情、加学习/睡眠、默认成就、重做 ================= */
 METRICS = [
-  { id: 'achieve', n: '成就', unit: '分', c: '#4ADE80' },
+  { id: 'achieve', n: '积分', unit: '分', c: '#4ADE80' },
   { id: 'focus', n: '专注', unit: '分', c: '#8B6BFF' },
   { id: 'task', n: '任务', unit: '件', c: '#FE2C55' },
   { id: 'study', n: '学习', unit: '分', c: '#22D3EE' },
@@ -7605,7 +7605,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l-.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
-    '<button class="mini" id="mAch">成就</button><button class="mini" id="mEdit">资料</button></span></div>' +
+    '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" id="mProf" style="margin-bottom:9px;cursor:pointer">' +
     '<span class="avatar">' + avHtml(st) + '</span>' +
@@ -7621,7 +7621,7 @@ function renderMine() {
     '<span class="xs mut2">' + fmtMD(today()) + ' ' + wd(today()) + '</span>' +
     '<button class="mini" id="tcDet" style="height:26px;padding:0 9px;font-size:11px">明细</button></div>' +
     '<div class="tcgrid">' +
-    '<div data-go="achieve"><span>成就值</span><b class="ach">' + r1(tb.total) + '</b><small>≈ ¥' + money(achToMoney(tb.total)) + '</small></div>' +
+    '<div data-go="achieve"><span>积分</span><b class="ach">' + r1(tb.total) + '</b><small>≈ ¥' + money(achToMoney(tb.total)) + '</small></div>' +
     '<div data-go="money"><span>支出</span><b class="spd">¥' + money(tOut) + '</b><small>' + (tIn ? '收 ¥' + money(tIn) : '今日无收入') + '</small></div>' +
     '<div data-go="money"><span>本月额度</span><b class="gold">' + (bud > 0 ? '¥' + money(quota) : '—') + '</b><small>' + (bud > 0 ? '预算 ¥' + money(bud) : '可在设置设预算') + '</small></div>' +
     '</div></div>' +
@@ -7641,7 +7641,7 @@ function renderMine() {
     '<input class="inp" id="qsNote" placeholder="备注，如：午饭" maxlength="20" style="flex:1">' +
     '<button class="btn sm" id="qsSave" style="height:40px;flex:0 0 auto;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)">记支出</button></div>' +
     '<div class="quickin">' +
-    '<input class="inp" type="number" id="qaV" placeholder="成就值" step="1" style="width:74px;flex:0 0 auto;text-align:center">' +
+    '<input class="inp" type="number" id="qaV" placeholder="积分" step="1" style="width:74px;flex:0 0 auto;text-align:center">' +
     '<input class="inp" id="qaN" placeholder="额外成就，如：坚持早起" maxlength="20" style="flex:1">' +
     '<button class="sqbtn" id="qaAdd" style="background:linear-gradient(135deg,var(--ach),color-mix(in srgb,var(--ach) 50%,var(--a2)));border-color:transparent;color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>' +
     '</div>' +
@@ -7938,53 +7938,50 @@ function openApp(id) {
 
 /* ---- 1. 倒计时：不再自动重建元旦，删干净就是删干净 ---- */
 function drawCd() {
-  var list = (S.events || []).map(function (e) { e._d = dayDiff(e.date, today()); return e; })
-    .sort(function (a, b) { return Math.abs(a._d) - Math.abs(b._d); });
-  if (!list.length) {
-    $('#shBody').innerHTML =
-      '<div class="empty" style="padding:26px 16px;text-align:center">' +
-      '<div style="font-size:34px;margin-bottom:10px">📅</div>' +
-      '<b style="font-size:15px">还没有倒数日</b>' +
-      '<div class="xs mut2" style="margin-top:6px">点下方「添加」，记下考试、生日、旅行…<br>打开开关就会出现在主页今日提醒里</div></div>';
-    return;
+    var box = document.getElementById('shBody');
+    if (!box) return;
+    S.events = S.events || [];
+    var td = today(), now = Date.now();
+    var list = S.events.slice().sort(function (a, b) { return evTarget(a) - evTarget(b); });
+    var H = '';
+    if (!list.length) {
+      H = '<div class="card"><div class="empty">还没有事件<br>点下面「+ 添加」，可精确到分钟</div></div>';
+    } else {
+      H = '<div class="card">' + list.map(function (e) {
+        var ms = evTarget(e) - now, past = ms < 0;
+        var rN = (e.reminders || []).length;
+        return '<div class="row" style="padding:11px 12px;border-radius:14px;background:var(--surf2);' +
+          'margin-bottom:8px;border:1px solid ' + (!past && ms < 864e5 ? 'color-mix(in srgb,var(--a1) 34%,transparent)' : 'transparent') + '">' +
+          '<span style="font-size:19px">' + (e.emoji || '📌') + '</span>' +
+          '<span style="flex:1;min-width:0"><b style="display:block;font-size:14px">' + esc(e.name) + '</b>' +
+          '<small class="mut2 xs">' + fmtMD(e.date) + ' ' + (e.time || '00:00') + ' · ' + wd(e.date) +
+          (!past ? ' · 还有 ' + fmtLeft(ms) : ' · 已过') + (rN ? ' · ⏰' + rN : '') + '</small></span>' +
+          '<button class="iconbtn" data-rm="' + e.id + '" title="提醒设置">⏰</button>' +
+          '<button class="iconbtn" data-ed="' + e.id + '" title="编辑">✎</button>' +
+          '<button class="iconbtn" data-del="' + e.id + '" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button></div>';
+      }).join('') + '</div>';
+    }
+    var perm = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
+    H += '<div class="card"><div class="ch"><h3>通知</h3></div>' +
+      '<div class="xs mut2" style="margin-bottom:8px">当前状态：' +
+      (perm === 'granted' ? '已开启' : perm === 'denied' ? '已被系统拒绝（需到浏览器设置里打开）' : perm === 'unsupported' ? '此浏览器不支持' : '未开启') + '</div>' +
+      (perm === 'default' ? '<button class="btn primary wide" id="evPerm">开启通知提醒</button>' : '') + '</div>';
+    box.innerHTML = H;
+    var pb = document.getElementById('evPerm');
+    if (pb) pb.onclick = function () {
+      try { Notification.requestPermission().then(function (p) { toast(p === 'granted' ? '通知已开启' : '未授权'); drawCdV16(); }); }
+      catch (e) { toast('此浏览器不支持通知'); }
+    };
+    box.querySelectorAll('[data-del]').forEach(function (b) {
+      b.onclick = function () { S.events = S.events.filter(function (x) { return x.id !== b.dataset.del; }); save(); drawCdV16(); };
+    });
+    box.querySelectorAll('[data-ed]').forEach(function (b) {
+      b.onclick = function () { evDlg(b.dataset.ed); };
+    });
+    box.querySelectorAll('[data-rm]').forEach(function (b) {
+      b.onclick = function () { evRemindDlg(b.dataset.rm); };
+    });
   }
-  var anyHome = list.some(function (e) { return e.home === 1; });
-  $('#shBody').innerHTML =
-    '<div class="hint" style="margin-bottom:9px">打开开关 → 出现在主页「今日提醒」里（最多 2 个）。全部关闭则主页不显示。</div>' +
-    '<div class="card">' + list.map(function (e) {
-      var n = e._d, hot = n >= 0 && n <= 7;
-      var on = e.home === 1;
-      return '<div class="row" style="padding:11px 12px;border-radius:14px;background:var(--surf2);margin-bottom:8px;gap:9px;border:1px solid ' + (hot ? 'color-mix(in srgb,var(--a1) 34%,transparent)' : 'transparent') + '">' +
-        '<span style="font-size:19px">' + (e.emoji || '📌') + '</span>' +
-        '<span style="flex:1;min-width:0"><b style="display:block;font-size:14px">' + esc(e.name) + '</b><small class="mut2 xs">' + fmtMD(e.date) + ' · ' + wd(e.date) + '</small></span>' +
-        '<span style="text-align:right;flex:0 0 auto"><b style="font-size:20px;font-variant-numeric:tabular-nums;' + (hot ? 'background:linear-gradient(120deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent' : '') + '">' + (n === 0 ? '今天' : Math.abs(n)) + '</b>' +
-        '<small class="mut2 xs" style="display:block">' + (n > 0 ? '还有' : n === 0 ? '' : '已过') + (n === 0 ? '' : ' 天') + '</small></span>' +
-        '<button class="cdhome' + (on ? ' on' : '') + '" data-home="' + e.id + '" title="显示在主页"></button>' +
-        '<button class="iconbtn" data-del="' + e.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button></div>';
-    }).join('') + '</div>' +
-    '<div class="card tight" style="margin-top:9px;text-align:center;padding:11px">' +
-    '<div class="xs mut2">共 ' + list.length + ' 个 · 已上主页 ' + list.filter(function (e) { return e.home === 1; }).length + ' 个</div></div>';
-  $$('#shBody [data-del]').forEach(function (b) {
-    b.onclick = function () {
-      S.events = (S.events || []).filter(function (x) { return x.id !== b.dataset.del; });
-      save(); drawCd(); toast('已删除');
-      if (curTab === 'home') renderHome();
-    };
-  });
-  $$('#shBody [data-home]').forEach(function (b) {
-    b.onclick = function () {
-      var id = b.dataset.home;
-      var e = (S.events || []).filter(function (x) { return x.id === id; })[0];
-      if (!e) return;
-      e.home = e.home === 1 ? 0 : 1;
-      save();
-      b.classList.toggle('on', e.home === 1);
-      toast(e.home === 1 ? '已显示在主页' : '已从主页移除');
-      if (curTab === 'home') renderHome();
-      else renderHomeRemind();
-    };
-  });
-}
 
 /* ---- 2. 主页倒计时：严格按开关，全关就不显示 ---- */
 function homeCdList() {
@@ -7998,7 +7995,7 @@ function homeCdList() {
 var RM_SKIP = { rain: 1, uv: 1, dress: 1, diff: 1, water: 1, mood: 1, sleep: 1 };
 function buildRemindersBase() {
   var d = getDay(CUR, true), items = [];
-  /* 3.1 倒数日（临近优先） */
+  /* 3.1 事件提醒（临近优先） */
   (S.events || []).forEach(function (e) {
     var n = dayDiff(e.date, CUR);
     if (n >= 0 && n <= 30) {
@@ -8328,12 +8325,12 @@ function achGridHtml(breakdown, total) {
     el.innerHTML =
       '<div class="rmempty">' +
       '<div class="em">🌤️</div>' +
-      '<div class="t1">今天很干净，没有待办和倒数日</div>' +
-      '<div class="t2">添加任务、习惯或倒数日，它们会自动出现在这里</div>' +
+      '<div class="t1">今天很干净，没有待办和事件提醒</div>' +
+      '<div class="t2">添加任务、习惯或事件提醒，它们会自动出现在这里</div>' +
       '<div class="btns">' +
       '<button data-go="task">＋ 加任务</button>' +
       '<button data-go="habit">＋ 加习惯</button>' +
-      '<button data-go="countdown">＋ 加倒数日</button>' +
+      '<button data-go="countdown">＋ 加事件提醒</button>' +
       '</div></div>';
     $$('#hRm [data-go]').forEach(function (b) {
       b.onclick = function () { openApp(b.dataset.go); };
@@ -8536,16 +8533,16 @@ function achGridHtml(breakdown, total) {
 
 /* 各场景的空状态配置：图标 + 标题 + 说明 + 按钮 */
 var EMPTY_MAP = {
-  task: { i: '✅', t: '这里会记下你要做的事', d: '写下第一件最重要的，完成后能拿到成就值', b: '写下第一件事' },
+  task: { i: '✅', t: '这里会记下你要做的事', d: '写下第一件最重要的，完成后能拿到积分', b: '写下第一件事' },
   habit: { i: '🎯', t: '习惯会在这里积累', d: '从一个小到不可能失败的坚持开始，比如「喝一杯水」', b: '添加第一个习惯' },
-  study: { i: '📚', t: '学习时长记在这里', d: '填上学时与质量，自动换算成成就值', b: '添加学习记录' },
+  study: { i: '📚', t: '学习时长记在这里', d: '填上学时与质量，自动换算成积分', b: '添加学习记录' },
   money: { i: '🧾', t: '支出会记在这里', d: '记一笔，月底就能看清钱花在哪了', b: '记一笔' },
   journal: { i: '📝', t: '今天还没写点什么', d: '一句话也行，未来的你会感谢现在的记录', b: '写一句' },
   focus: { i: '🍅', t: '还没有专注记录', d: '选一个时长，开始一段不被打扰的时间', b: '开始专注' },
   sleep: { i: '🌙', t: '还没有睡眠记录', d: '填上睡了多久、几点起床，系统会算成就', b: '添加睡眠记录' },
   schulte: { i: '⚡', t: '还没有成绩', d: '完成一局就能看到你的速度与进步曲线', b: '来一局' },
-  achieve: { i: '🏆', t: '成就还空着', d: '完成任务、专注、打卡习惯都会攒下成就值', b: '去看看任务' },
-  countdown: { i: '📅', t: '倒数日会出现在这里', d: '记下考试、生日、旅行，重要的日子不再错过', b: '添加倒数日' },
+  achieve: { i: '🏆', t: '成就还空着', d: '完成任务、专注、打卡习惯都会攒下积分', b: '去看看任务' },
+  countdown: { i: '📅', t: '事件提醒会出现在这里', d: '记下考试、生日、旅行，重要的日子不再错过', b: '添加事件提醒' },
   water: { i: '💧', t: '今天还没喝水', d: '定个小目标，一杯一杯来', b: '记一杯' },
   todo: { i: '✅', t: '这里会记下你要做的事', d: '写下第一件最重要的', b: '添加' },
   weather: { i: '🌤️', t: '天气暂时取不到', d: '联网后自动显示，也可以手动换个城市', b: '重试' },
@@ -8848,7 +8845,7 @@ function importBackup(text, opt) {
   return {
     ok: true, msg: '导入成功', v: ver,
     sum: ds + ' 天记录 · ' + (next.habits || []).length + ' 个习惯 · ' +
-      (next.events || []).length + ' 个倒数日' +
+      (next.events || []).length + ' 个事件提醒' +
       (isV3 ? '' : '（来自旧版' + (ver ? ' v' + ver : '') + '，已自动升级为新版格式）')
   };
 }
@@ -12954,8 +12951,594 @@ function habitBestAll() {
   document.head.appendChild(s);
 })();
 
+
+/* ===== 第十六轮（内联） ===== */
+
+  /* ---------- A. 安装提示：已安装则不再显示 ---------- */
+  try {
+    var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+    if (isStandalone) {
+      window.__LUMEN_DEFERRED__ = null;
+      window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); });
+      var killCard = setInterval(function () {
+        var c = document.getElementById('lumenInstallCard');
+        if (c && c.parentNode) { c.parentNode.removeChild(c); clearInterval(killCard); }
+      }, 400);
+      setTimeout(function () { clearInterval(killCard); }, 12000);
+    }
+  } catch (e) { }
+
+  /* ---------- B. 积分输入框允许负数 ---------- */
+  setInterval(function () {
+    try {
+      var ids = ['qaV', 'feA', 'fAchS', 'fAchM', 'ha', 'hn2a'];
+      for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i]);
+        if (el && el.getAttribute('min') !== '-99999') el.setAttribute('min', '-99999');
+      }
+    } catch (e) { }
+  }, 700);
+
+  /* ---------- C. 便签入口：长按不再弹「复制」 ---------- */
+  var st = document.createElement('style');
+  st.textContent = [
+    '#p-mine .phead h1,.phead h1{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}',
+    /* 便签：右侧竖排工具条 */
+    '#shTbBar{position:fixed;right:7px;bottom:calc(84px + env(safe-area-inset-bottom));' +
+    'display:flex;flex-direction:column;gap:5px;width:54px;z-index:14;' +
+    'padding:5px 4px;border-radius:16px;border:1px solid var(--line-s);' +
+    'background:color-mix(in srgb,var(--surf) 92%,transparent);' +
+    'box-shadow:0 6px 20px rgba(0,0,0,.22)}',
+    '#shTbBar .tbg{padding:7px 2px;border-radius:11px}',
+    '#shTbBar .tbg-i{font-size:15px}',
+    '#shTbBar .tbg-t{font-size:9.5px}',
+    /* 面板：弹出在竖排按钮左侧 */
+    '#shTbPanel{position:fixed!important;right:66px;bottom:calc(84px + env(safe-area-inset-bottom));' +
+    'left:auto;width:min(70vw,320px);margin:0!important;z-index:15}',
+    /* 习惯新 UI */
+    '.hsw{display:flex;align-items:center;gap:6px;padding:9px 10px;margin-bottom:9px}',
+    '.hsw-m{flex:1;min-width:0;text-align:center}',
+    '.hsw-ic{font-size:22px;display:block;line-height:1.1}',
+    '.hsw-m b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.hck{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;margin-bottom:9px}',
+    '.hck-l b{font-size:17px;font-variant-numeric:tabular-nums}',
+    '.hck-l small{display:block;margin-top:1px}',
+    '.hck-r{display:flex;gap:6px}',
+    '.hck.ok{border-color:color-mix(in srgb,var(--ok) 45%,transparent)}',
+    '.hck.bad{border-color:color-mix(in srgb,var(--danger) 45%,transparent)}',
+    '.chips{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}',
+    '.chips button{padding:5px 12px;border-radius:14px;font-size:12px;' +
+    'border:1px solid var(--line);background:var(--surf2);color:var(--tx2)}',
+    '.chips button.on{background:var(--a1);color:#fff;border-color:var(--a1)}',
+    '.hheat{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}',
+    '.hheat i{display:block;height:22px;border-radius:6px;border:1px solid var(--line)}',
+    '.hrow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line)}',
+    '.hrow:last-child{border-bottom:none}',
+    '.hrow .d{width:52px;font-size:11.5px;color:var(--tx3)}',
+    '.hrow .c{flex:1;font-size:12.5px}',
+    '.hrow .p{font-size:12.5px;font-variant-numeric:tabular-nums;font-weight:640}',
+    '.evr{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)}',
+    '.evr:last-child{border-bottom:none}'
+  ].join('\n');
+  document.head.appendChild(st);
+
+  /* ---------- D. 习惯：数据模型与计分 ---------- */
+  function hIsBad(h) { return h && h.type === 'bad'; }
+  function hFreq(h) { return (h && h.freq) || 'day'; }
+  function hPDays(h, k) {
+    var f = hFreq(h);
+    if (f === 'week') { try { return weekRange(k); } catch (e) { return [k, k]; } }
+    if (f === 'month') { try { return monthRange(k); } catch (e) { return [k, k]; } }
+    return [k, k];
+  }
+  function hPTotal(h, k) {
+    var r = hPDays(h, k), t = 0, x = r[0], g = 0;
+    while (x <= r[1] && g++ < 400) { t += hCount(h, x); x = addDays(x, 1); }
+    return t;
+  }
+  /* 某天归属到该习惯的积分（周期奖励/扣分均摊到周期内每天） */
+  function habitDayPts(h, k) {
+    if (!h) return 0;
+    var c = hCount(h, k), f = hFreq(h), tgt = num(h.times, 1);
+    var a = num(h.a, num(h.ach, 5));
+    var b = num(h.b, 0), cc = num(h.c, 0), dd = num(h.d, 0);
+    if (hIsBad(h)) {
+      var base = num(h.base, num(h.ach, 0)), ov = num(h.over, 0), un = num(h.under, 0);
+      var r0 = hPDays(h, k), len0 = Math.max(1, dayDiff(r0[1], r0[0]) + 1), tot0 = hPTotal(h, k);
+      var ex = Math.max(0, tot0 - tgt), sh = Math.max(0, tgt - tot0);
+      return (base - ov * ex + un * sh) / len0;
+    }
+    if (f === 'day') {
+      var p = c * a;
+      if (c >= tgt) p += b + (c - tgt) * dd; else p -= (tgt - c) * cc;
+      return p;
+    }
+    var r = hPDays(h, k), len = Math.max(1, dayDiff(r[1], r[0]) + 1), tot = hPTotal(h, k);
+    var adj = tot >= tgt ? (b + (tot - tgt) * dd) : (-(tgt - tot) * cc);
+    return c * a + adj / len;
+  }
+  function hRangePts(h, n) {
+    var t = 0, td = today();
+    for (var i = 0; i < n; i++) t += habitDayPts(h, addDays(td, -i));
+    return t;
+  }
+  function hSetCount(h, k, v) {
+    var d = getDay(k, true);
+    d.habits = d.habits || {};
+    d.habits[h.id] = v > 0 ? v : 0;
+    save();
+  }
+  var HABIT_IDX = 0, HABIT_RANGE = 14, __CUR_NOTE_ID__ = null, __EV_EMO__ = '📌';
+
+  /* ---------- E. 习惯：全新单习惯视图 ---------- */
+  drawHabit = function drawHabit() {
+    var box = document.getElementById('shBody');
+    if (!box) return;
+    if (!S.habits.length) {
+      box.innerHTML = '<div class="card"><div class="empty">还没有习惯<br>点下面「+ 新习惯」开始' +
+        '<div class="xs mut2" style="margin-top:6px">好习惯坚持得分 · 坏习惯不超标得分</div></div></div>';
+      return;
+    }
+    if (HABIT_IDX >= S.habits.length) HABIT_IDX = 0;
+    var h = S.habits[HABIT_IDX], bad = hIsBad(h), td = today(), f = hFreq(h);
+    var tgt = num(h.times, 1), tot = hPTotal(h, td), cnt = hCount(h, td);
+    var perName = f === 'day' ? '今天' : (f === 'week' ? '本周' : '本月');
+    var ok = bad ? (tot <= tgt) : (tot >= tgt);
+    var FQ = { day: '每天', week: '每周', month: '每月' };
+    var H = '';
+
+    /* 切换器 */
+    H += '<div class="card hsw">' +
+      '<button class="iconbtn" id="hPrev" title="上一个习惯">‹</button>' +
+      '<div class="hsw-m"><span class="hsw-ic">' + (h.icon || '💧') + '</span>' +
+      '<b>' + esc(h.name) + '</b>' +
+      '<small class="mut2 xs">' + (bad ? '坏习惯' : '好习惯') + ' · ' + FQ[f] + ' ' +
+      tgt + (bad ? ' 次以内' : ' 次') + ' · ' + (HABIT_IDX + 1) + '/' + S.habits.length + '</small></div>' +
+      '<button class="iconbtn" id="hNext" title="下一个习惯">›</button>' +
+      '<button class="iconbtn" id="hEdit" title="编辑">⚙</button></div>';
+
+    /* 打卡 */
+    H += '<div class="card hck ' + (ok ? 'ok' : (bad ? 'bad' : '')) + '">' +
+      '<div class="hck-l"><b class="' + (bad ? (ok ? 'ok' : 'dg') : (ok ? 'ok' : '')) + '">' +
+      tot + ' / ' + tgt + ' 次</b><small class="mut2 xs">' + perName + '累计 · ' +
+      (ok ? (bad ? '未超标 ✓' : '已达标 ✓') : (bad ? '已超标' : '还差 ' + (tgt - tot) + ' 次')) + '</small></div>' +
+      '<div class="hck-r">' +
+      '<button class="btn sm" id="hMinus">−</button>' +
+      '<button class="btn primary" id="hPlus">' + (bad ? '记一次' : '打卡 +1') + '</button>' +
+      '</div></div>';
+
+    /* 范围 */
+    H += '<div class="chips" id="hRange">' +
+      [[14, '近14天'], [28, '近4周'], [56, '近8周']].map(function (x) {
+        return '<button data-r="' + x[0] + '"' + (HABIT_RANGE === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>';
+      }).join('') + '</div>';
+
+    /* 汇总 */
+    var sum = hRangePts(h, HABIT_RANGE);
+    H += '<div class="card" style="margin-bottom:9px"><div class="ch"><h3>近' + HABIT_RANGE + '天积分</h3>' +
+      '<span class="hint">每天得分相加</span></div><div class="row" style="gap:10px;align-items:baseline">' +
+      '<b class="big ' + (sum >= 0 ? 'ach' : 'dg') + '">' + (sum >= 0 ? '+' : '') + r1(sum) + '</b>' +
+      '<span class="xs mut2">≈ ¥' + money(achToMoney(Math.max(0, sum))) + '</span>' +
+      '<span class="xs mut2" style="margin-left:auto">' + (bad ? '基础分 − 超额扣分 + 少做奖励' : '每次得分 + 达标奖励 − 未达标扣分') + '</span></div></div>';
+
+    /* 热力图：只看「每天积分」这一个元素 */
+    var days = [], i;
+    for (i = HABIT_RANGE - 1; i >= 0; i--) { var kk = addDays(td, -i); days.push({ k: kk, p: habitDayPts(h, kk) }); }
+    var mx = 0.001;
+    days.forEach(function (x) { mx = Math.max(mx, Math.abs(x.p)); });
+    H += '<div class="card" style="margin-bottom:9px"><div class="ch"><h3>每日积分热力</h3>' +
+      '<span class="hint">绿=得分 红=扣分</span></div><div class="hheat">' + days.map(function (x) {
+        var v = x.p, t = Math.min(1, Math.abs(v) / mx), bg;
+        if (v > 0.005) bg = 'background:color-mix(in srgb,var(--ok) ' + Math.round(14 + t * 72) + '%,var(--surf2))';
+        else if (v < -0.005) bg = 'background:color-mix(in srgb,var(--danger) ' + Math.round(14 + t * 72) + '%,var(--surf2))';
+        else bg = 'background:var(--surf2)';
+        return '<i title="' + x.k + ' · ' + (v >= 0 ? '+' : '') + r1(v) + '" style="' + bg + '"></i>';
+      }).join('') + '</div><div class="row xs mut2" style="justify-content:space-between;margin-top:6px">' +
+      '<span>' + days[0].k.slice(5) + '</span><span>今天</span></div></div>';
+
+    /* 明细：最近 10 天 */
+    var rows = days.slice(-10).reverse().map(function (x) {
+      var c = hCount(h, x.k);
+      return '<div class="hrow"><span class="d">' + x.k.slice(5) + ' ' + WS[parseD(x.k).getDay()] + '</span>' +
+        '<span class="c">' + (bad ? '发生 ' + c + ' 次（限 ' + tgt + '）' : c + ' / ' + tgt + ' 次') + '</span>' +
+        '<span class="p ' + (x.p >= 0 ? 'ach' : 'dg') + '">' + (x.p >= 0 ? '+' : '') + r1(x.p) + '</span></div>';
+    }).join('');
+    H += '<div class="card"><div class="ch"><h3>最近 10 天</h3></div>' + rows + '</div>';
+
+    box.innerHTML = H;
+
+    var pv = document.getElementById('hPrev'), nx = document.getElementById('hNext');
+    var ed = document.getElementById('hEdit'), pl = document.getElementById('hPlus'), mi = document.getElementById('hMinus');
+    if (pv) pv.onclick = function () { HABIT_IDX = (HABIT_IDX - 1 + S.habits.length) % S.habits.length; drawHabit(); };
+    if (nx) nx.onclick = function () { HABIT_IDX = (HABIT_IDX + 1) % S.habits.length; drawHabit(); };
+    if (ed) ed.onclick = function () { habitDlg(h.id); };
+    if (pl) pl.onclick = function () { hSetCount(h, td, hCount(h, td) + 1); drawHabit(); renderHome && curTab === 'home' ? renderHome() : 0; };
+    if (mi) mi.onclick = function () { hSetCount(h, td, hCount(h, td) - 1); drawHabit(); };
+    var rg = document.getElementById('hRange');
+    if (rg) rg.querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () { HABIT_RANGE = +b.dataset.r; drawHabit(); };
+    });
+  };
+
+  /* ---------- F. 习惯编辑：支持坏习惯与四项计分 ---------- */
+  habitDlg = function habitDlg(id) {
+    var h = id ? S.habits.filter(function (x) { return x.id === id; })[0] : null;
+    var EMO = ['💧', '🏃', '📚', '🧘', '💤', '🥗', '✍️', '🎧', '🌱', '💪', '🧹', '☀️', '🦷', '🚭', '🧠', '❤️'];
+    var tmp = {
+      name: h ? h.name : '', icon: h ? (h.icon || '💧') : '💧',
+      type: h ? (h.type || 'good') : 'good', freq: h ? hFreq(h) : 'day',
+      times: h ? num(h.times, 1) : 1,
+      a: h ? num(h.a, num(h.ach, 5)) : 5, b: h ? num(h.b, 0) : 0,
+      c: h ? num(h.c, 0) : 0, d: h ? num(h.d, 0) : 0,
+      base: h ? num(h.base, num(h.ach, 0)) : 0, over: h ? num(h.over, 0) : 0, under: h ? num(h.under, 0) : 0
+    };
+    function numfld(lbl, id2, v, hint2) {
+      return '<div class="fld"><label>' + lbl + '</label><input class="inp" type="number" id="' + id2 +
+        '" value="' + v + '" step="1" min="-99999" style="text-align:center">' +
+        (hint2 ? '<small class="xs mut2">' + hint2 + '</small>' : '') + '</div>';
+    }
+    openDlg({
+      title: h ? '编辑习惯' : '新习惯',
+      sub: '好习惯：达标得分；坏习惯：不超标得分',
+      body:
+        '<div class="fld"><label>名称</label><input class="inp" id="hn" value="' + esc(tmp.name) + '" placeholder="例如：跑步 / 抽烟" maxlength="20"></div>' +
+        '<div class="fld" style="margin-top:10px"><label>类型</label><div class="segline sm" id="htp">' +
+        [['good', '好习惯'], ['bad', '坏习惯']].map(function (x) {
+          return '<button data-v="' + x[0] + '"' + (tmp.type === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>';
+        }).join('') + '</div></div>' +
+        '<div class="fld" style="margin-top:10px"><label>图标</label><div class="tagpick" id="hi">' +
+        EMO.map(function (e) {
+          return '<button data-e="' + e + '"' + (tmp.icon === e ? ' class="on"' : '') + ' style="font-size:19px">' + e + '</button>';
+        }).join('') + '</div></div>' +
+        '<div class="fld" style="margin-top:10px"><label>频率</label><div class="segline sm" id="hfr">' +
+        [['day', '每天'], ['week', '每周'], ['month', '每月']].map(function (x) {
+          return '<button data-v="' + x[0] + '"' + (tmp.freq === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>';
+        }).join('') + '</div></div>' +
+        '<div id="hGood" style="display:' + (tmp.type === 'bad' ? 'none' : 'block') + '">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">' +
+        numfld('周期内目标次数', 'ht', tmp.times) + numfld('每次得分', 'ha', tmp.a) + '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">' +
+        numfld('达标奖励', 'hb', tmp.b) + numfld('超一次额外奖', 'hd', tmp.d) + '</div>' +
+        '<div style="margin-top:8px">' + numfld('少一次扣多少', 'hc', tmp.c) + '</div>' +
+        '<div class="hint" style="margin-top:8px">周期奖励与扣分，会<b>均摊到周期内每一天</b>，所以热力图每天都能看到贡献。</div></div>' +
+        '<div id="hBad" style="display:' + (tmp.type === 'bad' ? 'block' : 'none') + '">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">' +
+        numfld('周期内允许次数', 'hq', tmp.times) + numfld('不超标基础分', 'hbase', tmp.base) + '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">' +
+        numfld('每超额一次扣', 'hov', tmp.over) + numfld('每少做一次奖', 'hun', tmp.under) + '</div>' +
+        '<div class="hint" style="margin-top:8px">例如：每天允许 2 次，基础 6 分；抽了 3 次 → 扣 1 次的分；只抽 1 次 → 奖励 1 次的分。</div></div>',
+      ok: h ? '保存' : '添加',
+      onOk: function () {
+        var n = document.getElementById('hn').value.trim();
+        if (!n) { toast('名称不能为空', 'err'); return false; }
+        var o = {
+          name: n, icon: tmp.icon, type: tmp.type, freq: tmp.freq,
+          times: Math.max(1, Math.round(num(document.getElementById(tmp.type === 'bad' ? 'hq' : 'ht').value, 1)))
+        };
+        if (tmp.type === 'bad') {
+          o.base = num(document.getElementById('hbase').value, 0);
+          o.over = num(document.getElementById('hov').value, 0);
+          o.under = num(document.getElementById('hun').value, 0);
+          o.ach = o.base;
+        } else {
+          o.a = num(document.getElementById('ha').value, 5);
+          o.b = num(document.getElementById('hb').value, 0);
+          o.c = num(document.getElementById('hc').value, 0);
+          o.d = num(document.getElementById('hd').value, 0);
+          o.ach = o.a;
+        }
+        if (h) { for (var key in o) h[key] = o[key]; }
+        else { o.id = uid(); o.createdAt = Date.now(); S.habits.push(o); }
+        save(); drawHabit(); if (curTab === 'home') renderHome(); toast('已保存');
+      },
+      onOpen: function () {
+        document.querySelectorAll('#hi button').forEach(function (b) {
+          b.onclick = function () {
+            tmp.icon = b.dataset.e;
+            document.querySelectorAll('#hi button').forEach(function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+          };
+        });
+        bindSeg('#htp', tmp.type, function (v) {
+          tmp.type = v;
+          document.getElementById('hGood').style.display = v === 'bad' ? 'none' : 'block';
+          document.getElementById('hBad').style.display = v === 'bad' ? 'block' : 'none';
+        });
+        bindSeg('#hfr', tmp.freq, function (v) { tmp.freq = v; });
+      }
+    });
+  };
+
+  /* ---------- G. 事件提醒：分钟精度 + 多个提醒 + 通知 ---------- */
+  function evTime(e) { return (e.date || '') + ' ' + (e.time || '00:00'); }
+  function evTarget(e) {
+    var t = parseD(e.date);
+    var hh = 0, mm = 0;
+    if (e.time) { var p = String(e.time).split(':'); hh = num(p[0], 0); mm = num(p[1], 0); }
+    return new Date(t.getFullYear(), t.getMonth(), t.getDate(), hh, mm, 0, 0).getTime();
+  }
+  function evFireAt(e, r) {
+    if (r.mode === 'at') { return new Date(String(r.at || '').replace(' ', 'T')).getTime() || 0; }
+    var base = evTarget(e);
+    return base + (r.mode === 'after' ? 1 : -1) * num(r.mins, 0) * 60000;
+  }
+  function fmtLeft(ms) {
+    var s = Math.floor(ms / 1000), d = Math.floor(s / 86400);
+    var hh = Math.floor((s % 86400) / 3600), mm = Math.floor((s % 3600) / 60);
+    if (d > 0) return d + ' 天 ' + hh + ' 小时';
+    if (hh > 0) return hh + ' 小时 ' + mm + ' 分';
+    if (mm > 0) return mm + ' 分钟';
+    return s > 0 ? s + ' 秒' : '已到';
+  }
+    /* 兜底：只要打开的是「事件提醒」，就用新版渲染（不依赖入口函数是否被提前捕获） */
+  var _openSheet16 = openSheet;
+  openSheet = function (id, title, body, opts) {
+    var r = _openSheet16.apply(this, arguments);
+    if (id === 'countdown') {
+      setTimeout(function () { try { drawCdV16(); } catch (e) { } }, 60);
+      setTimeout(function () { try { drawCdV16(); } catch (e) { } }, 260);
+    }
+    return r;
+  };
+
+  /* 事件提醒：重写入口，确保走新版渲染 */
+  appCountdown = function appCountdown() {
+    openSheet('countdown', '事件提醒', '', {
+      onMount: function () { drawCdV16(); },
+      foot: '<button class="btn" id="cdQ">快捷</button><button class="btn primary" id="cdA">+ 添加</button>'
+    });
+    var a = $('#cdA'), q = $('#cdQ');
+    if (a) a.onclick = function () { evDlg(null); };
+    if (q) q.onclick = cdQuick;
+  };
+function drawCdV16() {
+    var box = document.getElementById('shBody');
+    if (!box) return;
+    S.events = S.events || [];
+    var td = today(), now = Date.now();
+    var list = S.events.slice().sort(function (a, b) { return evTarget(a) - evTarget(b); });
+    var H = '';
+    if (!list.length) {
+      H = '<div class="card"><div class="empty">还没有事件<br>点下面「+ 添加」，可精确到分钟</div></div>';
+    } else {
+      H = '<div class="card">' + list.map(function (e) {
+        var ms = evTarget(e) - now, past = ms < 0;
+        var rN = (e.reminders || []).length;
+        return '<div class="row" style="padding:11px 12px;border-radius:14px;background:var(--surf2);' +
+          'margin-bottom:8px;border:1px solid ' + (!past && ms < 864e5 ? 'color-mix(in srgb,var(--a1) 34%,transparent)' : 'transparent') + '">' +
+          '<span style="font-size:19px">' + (e.emoji || '📌') + '</span>' +
+          '<span style="flex:1;min-width:0"><b style="display:block;font-size:14px">' + esc(e.name) + '</b>' +
+          '<small class="mut2 xs">' + fmtMD(e.date) + ' ' + (e.time || '00:00') + ' · ' + wd(e.date) +
+          (!past ? ' · 还有 ' + fmtLeft(ms) : ' · 已过') + (rN ? ' · ⏰' + rN : '') + '</small></span>' +
+          '<button class="iconbtn" data-rm="' + e.id + '" title="提醒设置">⏰</button>' +
+          '<button class="iconbtn" data-ed="' + e.id + '" title="编辑">✎</button>' +
+          '<button class="iconbtn" data-del="' + e.id + '" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button></div>';
+      }).join('') + '</div>';
+    }
+    var perm = (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported';
+    H += '<div class="card"><div class="ch"><h3>通知</h3></div>' +
+      '<div class="xs mut2" style="margin-bottom:8px">当前状态：' +
+      (perm === 'granted' ? '已开启' : perm === 'denied' ? '已被系统拒绝（需到浏览器设置里打开）' : perm === 'unsupported' ? '此浏览器不支持' : '未开启') + '</div>' +
+      (perm === 'default' ? '<button class="btn primary wide" id="evPerm">开启通知提醒</button>' : '') + '</div>';
+    box.innerHTML = H;
+    var pb = document.getElementById('evPerm');
+    if (pb) pb.onclick = function () {
+      try { Notification.requestPermission().then(function (p) { toast(p === 'granted' ? '通知已开启' : '未授权'); drawCdV16(); }); }
+      catch (e) { toast('此浏览器不支持通知'); }
+    };
+    box.querySelectorAll('[data-del]').forEach(function (b) {
+      b.onclick = function () { S.events = S.events.filter(function (x) { return x.id !== b.dataset.del; }); save(); drawCdV16(); };
+    });
+    box.querySelectorAll('[data-ed]').forEach(function (b) {
+      b.onclick = function () { evDlg(b.dataset.ed); };
+    });
+    box.querySelectorAll('[data-rm]').forEach(function (b) {
+      b.onclick = function () { evRemindDlg(b.dataset.rm); };
+    });
+  };
+  cdDlg = function cdDlg(id) { evDlg(id); };
+  evDlg = function evDlg(id) {
+    var e = id ? (S.events || []).filter(function (x) { return x.id === id; })[0] : null;
+    var d0 = e ? e.date : today(), t0 = e ? (e.time || '09:00') : '09:00';
+    openDlg({
+      title: e ? '编辑事件' : '添加事件', sub: '可精确到分钟，默认提前 30 分钟提醒',
+      body: '<div class="fld"><label>名称</label><input class="inp" id="evn" value="' + esc(e ? e.name : '') + '" placeholder="例如：开会 / 生日" maxlength="24"></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">' +
+        '<div class="fld"><label>日期</label><input class="inp" type="date" id="evd" value="' + d0 + '"></div>' +
+        '<div class="fld"><label>时间</label><input class="inp" type="time" id="evt" value="' + t0 + '"></div></div>' +
+        '<div class="fld" style="margin-top:10px"><label>图标</label><div class="tagpick" id="evi">' +
+        ['🎉', '📌', '🎂', '✈️', '📅', '💼', '🏥', '🎓', '💒', '⏰'].map(function (x) {
+          return '<button data-e="' + x + '"' + ((e ? (e.emoji || '📌') : '📌') === x ? ' class="on"' : '') + ' style="font-size:18px">' + x + '</button>';
+        }).join('') + '</div></div>' +
+        '<label class="row" style="gap:7px;margin-top:12px;font-size:13px">' +
+        '<input type="checkbox" id="evauto" ' + (e ? ((e.reminders || []).length ? 'checked' : '') : 'checked') + '>' +
+        '自动添加提醒（提前 30 分钟）</label>',
+      ok: '保存',
+      onOk: function () {
+        var n = document.getElementById('evn').value.trim();
+        if (!n) { toast('名称不能为空', 'err'); return false; }
+        var o = {
+          name: n, date: document.getElementById('evd').value || today(),
+          time: document.getElementById('evt').value || '09:00', emoji: __EV_EMO__ || (e ? e.emoji : '📌')
+        };
+        if (e) {
+          e.name = o.name; e.date = o.date; e.time = o.time; e.emoji = o.emoji;
+          if (document.getElementById('evauto').checked && !(e.reminders || []).length) {
+            e.reminders = [{ id: uid(), mode: 'before', mins: 30 }];
+          }
+        } else {
+          o.id = uid();
+          o.reminders = document.getElementById('evauto').checked ? [{ id: uid(), mode: 'before', mins: 30 }] : [];
+          S.events = S.events || []; S.events.push(o);
+        }
+        save(); drawCd(); if (curTab === 'home') renderHome(); toast('已保存');
+      },
+      onOpen: function () {
+        __EV_EMO__ = e ? (e.emoji || '📌') : '📌';
+        document.querySelectorAll('#evi button').forEach(function (b) {
+          b.onclick = function () {
+            __EV_EMO__ = b.dataset.e;
+            document.querySelectorAll('#evi button').forEach(function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+          };
+        });
+      }
+    });
+  };
+  evRemindDlg = function evRemindDlg(id) {
+    var e = (S.events || []).filter(function (x) { return x.id === id; })[0];
+    if (!e) return;
+    e.reminders = e.reminders || [];
+    function rows() {
+      if (!e.reminders.length) return '<div class="xs mut2">还没有提醒，点下面添加</div>';
+      return e.reminders.map(function (r) {
+        var txt = r.mode === 'at' ? ('具体时间 ' + (r.at || '')) :
+          (r.mode === 'before' ? '提前 ' : '之后 ') + r.mins + ' 分钟';
+        return '<div class="evr"><span style="flex:1;font-size:12.5px">⏰ ' + esc(txt) + '</span>' +
+          '<button class="iconbtn" data-rd="' + r.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button></div>';
+      }).join('');
+    }
+    openDlg({
+      title: '提醒设置', sub: esc(e.name), ok: false,
+      body: '<div id="evrList">' + rows() + '</div>' +
+        '<div class="row" style="gap:6px;margin-top:12px">' +
+        '<select class="inp" id="rMode" style="width:92px;flex:0 0 auto">' +
+        '<option value="before">提前</option><option value="after">之后</option><option value="at">具体时间</option></select>' +
+        '<input class="inp" type="number" id="rMins" value="30" min="0" step="1" style="width:76px;flex:0 0 auto;text-align:center">' +
+        '<span class="xs mut2" id="rUnit">分钟</span>' +
+        '<button class="btn primary sm" id="rAdd" style="margin-left:auto">添加</button></div>' +
+        '<div class="fld" id="rAtWrap" style="display:none;margin-top:8px"><label>具体时间</label>' +
+        '<input class="inp" type="datetime-local" id="rAt"></div>',
+      onOpen: function () {
+        var md = document.getElementById('rMode');
+        md.onchange = function () {
+          var at = md.value === 'at';
+          document.getElementById('rAtWrap').style.display = at ? 'block' : 'none';
+          document.getElementById('rMins').style.display = at ? 'none' : '';
+          document.getElementById('rUnit').style.display = at ? 'none' : '';
+        };
+        document.getElementById('rAdd').onclick = function () {
+          var m = md.value;
+          if (m === 'at') {
+            var v = document.getElementById('rAt').value;
+            if (!v) { toast('请选择时间', 'err'); return; }
+            e.reminders.push({ id: uid(), mode: 'at', at: v.replace('T', ' ') });
+          } else {
+            e.reminders.push({ id: uid(), mode: m, mins: Math.max(0, Math.round(num(document.getElementById('rMins').value, 30))) });
+          }
+          save(); document.getElementById('evrList').innerHTML = rows(); bindDel(); toast('已添加提醒');
+        };
+        bindDel();
+      }
+    });
+    function bindDel() {
+      var box = document.getElementById('evrList');
+      if (!box) return;
+      box.querySelectorAll('[data-rd]').forEach(function (b) {
+        b.onclick = function () {
+          e.reminders = e.reminders.filter(function (x) { return x.id !== b.dataset.rd; });
+          save(); box.innerHTML = rows(); bindDel();
+        };
+      });
+    }
+  };
+  /* 提醒引擎：到点弹通知 + 站内提示 */
+  S.evFired = S.evFired || {};
+  function fireNotify(title, body) {
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification(title, { body: body, icon: './icons/icon-192.png' });
+        return;
+      }
+    } catch (e) { }
+    try { toast('⏰ ' + title + ' · ' + body); } catch (e) { }
+  }
+  setInterval(function () {
+    try {
+      var now = Date.now();
+      (S.events || []).forEach(function (e) {
+        (e.reminders || []).forEach(function (r) {
+          var at = evFireAt(e, r);
+          if (!at) return;
+          var key = e.id + '_' + r.id + '_' + at;
+          if (Math.abs(now - at) < 60000 && !S.evFired[key]) {
+            S.evFired[key] = 1; saveNow();
+            fireNotify(e.name, (r.mode === 'at' ? '提醒时间到' : (r.mode === 'before' ? '提前 ' : '已过 ') + num(r.mins, 0) + ' 分钟'));
+          }
+        });
+      });
+    } catch (e) { }
+  }, 20000);
+
+  /* ---------- H. 便签：关闭按钮改成「退出」；插入图片后立即显示 ---------- */
+  var _ne3 = noteEdit;
+  if (typeof _ne3 === 'function') {
+    noteEdit = function (id, opts) {
+      __CUR_NOTE_ID__ = id || null;
+      var r = _ne3.apply(this, arguments);
+      setTimeout(markExit, 60);
+      setTimeout(markExit, 300);
+      return r;
+    };
+  }
+  function markExit() {
+    try {
+      var all = [];
+      var hd = document.querySelector('.sheet-h');
+      var ac = document.getElementById('shActs');
+      if (hd) all = all.concat(Array.prototype.slice.call(hd.querySelectorAll('button')));
+      if (ac) all = all.concat(Array.prototype.slice.call(ac.querySelectorAll('button')));
+      all.forEach(function (b) {
+        if (b.dataset.exitMark) return;
+        var t = (b.textContent || '').trim();
+        var tt = (b.getAttribute('title') || '') + (b.getAttribute('aria-label') || '');
+        var isX = (t === '✕' || t === '×' || t === '✖' || t === '✗') ||
+                  /关闭|退出/.test(tt) || (b.dataset.act === 'close' || b.dataset.act === 'x');
+        if (isX) {
+          b.dataset.exitMark = '1';
+          b.innerHTML = '退出';
+          b.style.fontSize = '13px';
+          b.style.padding = '4px 10px';
+          b.style.minWidth = '44px';
+        }
+      });
+    } catch (e) { }
+  }
+  setInterval(markExit, 900);
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t && t.type === 'file' && t.id === 'neImg') {
+      setTimeout(function () {
+        try {
+          if (__CUR_NOTE_ID__ && typeof noteEdit === 'function') noteEdit(__CUR_NOTE_ID__);
+          else if (typeof rerender === 'function') rerender();
+        } catch (err) { }
+      }, 500);
+    }
+  }, true);
+
+  /* ---------- I. 我的 → 设置里加「打开便签」备用入口 ---------- */
+  setInterval(function () {
+    try {
+      if (curTab !== 'mine') return;
+      var p = document.getElementById('p-mine');
+      if (!p || document.getElementById('mineNoteEntry')) return;
+      var btn = document.createElement('button');
+      btn.id = 'mineNoteEntry';
+      btn.className = 'btn wide';
+      btn.style.margin = '10px 0';
+      btn.textContent = '📝 便签（也可长按顶部标题进入）';
+      btn.onclick = function () { notesSheet && notesSheet(); };
+      var set = p.querySelector('#mSets') || p.lastElementChild;
+      if (set && set.parentNode) set.parentNode.insertBefore(btn, set);
+    } catch (e) { }
+  }, 1200);
 })();
+
+/* ================= 第十六轮：习惯重构 / 事件提醒 / 便签优化 ================= */
 </script>
+
 <!-- PWA：Service Worker + 安装入口 -->
 <script>
 (function () {
