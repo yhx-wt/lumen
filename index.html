@@ -20087,6 +20087,71 @@ function exportICS() {
   drawCd2.__icsPatch = 1;
 })();
 
+/* ========== 第四十三轮：恢复「兑换比率」设置入口 ==========
+   问题：后期版本的 settingsSheet 里 SETS 数组被重写，把 ['exchange','兑换'] 这一项弄丢了，
+   而 drawSettings 的分支里也没有 exchange，导致用户根本找不到地方改「积分↔金额」的换算比率
+   （我的页说明文字却写着"比率可在右上角设置里改"，形成死路）。
+   本轮用包装方式补回，不动原函数。 */
+(function () {
+  if (typeof drawSettings !== 'function' || drawSettings.__exPatch) return;
+  var _d = drawSettings;
+  drawSettings = function (SETS) {
+    try {
+      if (SETS && Object.prototype.toString.call(SETS) === '[object Array]') {
+        var has = false;
+        for (var i = 0; i < SETS.length; i++) { if (SETS[i] && SETS[i][0] === 'exchange') { has = true; break; } }
+        if (!has) {
+          var r = 10;
+          try { r = num(S.settings.exRate, 10); } catch (e) { }
+          var m = 1;
+          try { m = num(S.settings.exMoney, 1); } catch (e) { }
+          SETS.push(['exchange', '兑换', '每' + r1(r) + '分 = ¥' + m]);
+        }
+      }
+    } catch (e) { }
+    _d.apply(this, arguments);
+    /* drawSettings 内的分支没有 exchange，这里补绑一次 */
+    try {
+      var b = document.querySelector('#shBody .mset[data-id="exchange"]');
+      if (b) {
+        b.onclick = function () {
+          if (typeof exchangeDlg === 'function') exchangeDlg();
+        };
+      }
+    } catch (e2) { }
+  };
+  drawSettings.__exPatch = 1;
+
+  /* 同时在「我的页」余额区补一个直达入口，省得用户翻设置 */
+  if (typeof renderMine === 'function' && !renderMine.__exPatch) {
+    var _r = renderMine;
+    renderMine = function () {
+      _r.apply(this, arguments);
+      try {
+        var mine = document.getElementById('p-mine');
+        if (!mine || document.getElementById('mineExBtn')) return;
+        /* 挂在「今日积分来源」卡片的标题栏里 */
+        var chs = mine.querySelectorAll('.ch');
+        var target = null;
+        for (var i = 0; i < chs.length; i++) {
+          if (/积分来源/.test(chs[i].textContent || '')) { target = chs[i]; break; }
+        }
+        if (!target) return;
+        var btn = document.createElement('button');
+        btn.id = 'mineExBtn';
+        btn.className = 'mini';
+        btn.style.cssText = 'height:26px;padding:0 9px;font-size:11px;margin-left:auto';
+        var r = 10; try { r = num(S.settings.exRate, 10); } catch (e) { }
+        var m = 1; try { m = num(S.settings.exMoney, 1); } catch (e) { }
+        btn.textContent = '1元=' + r1(r / (m || 1)) + '分 ▸';
+        btn.onclick = function () { if (typeof exchangeDlg === 'function') exchangeDlg(); };
+        target.appendChild(btn);
+      } catch (e3) { }
+    };
+    renderMine.__exPatch = 1;
+  }
+})();
+
 })();
 </script>
 </body>
