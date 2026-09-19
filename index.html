@@ -19895,6 +19895,198 @@ function renderMine() {
   });
 })();
 
+/* ========== 第四十二轮：事件导出到系统日历（.ics） ==========
+   网页/PWA 无法在关闭后本地定时通知，但可以把事件写成通用 .ics 日历文件，
+   交给手机自带日历去提醒（系统级，锁屏也响，与网页是否打开无关）。 */
+
+/* ---- 1. ics 文本转义 ---- */
+function icsEsc(t) {
+  return String(t == null ? '' : t)
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
+/* ---- 2. 本地日期对象 → UTC ical 串（YYYYMMDDTHHMMSSZ），最兼容各家日历 ---- */
+function icsUTC(d) {
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + 'T' +
+    p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z';
+}
+
+/* ---- 3. 毫秒时长 → ical 提前量（只取分钟，最大兼容） ---- */
+function icsDurMin(ms) {
+  var m = Math.max(0, Math.round(ms / 60000));
+  return '-PT' + m + 'M';
+}
+
+/* ---- 4. 生成全部事件的 ics 内容 ---- */
+function buildICS() {
+  var L = [];
+  L.push('BEGIN:VCALENDAR');
+  L.push('VERSION:2.0');
+  L.push('PRODID:-//LUMEN//Events//CN');
+  L.push('CALSCALE:GREGORIAN');
+  L.push('METHOD:PUBLISH');
+  L.push('X-WR-CALNAME:晨昏 LUMEN 事件');
+
+  var nowU = icsUTC(new Date());
+  var evs = (S.events || []).slice().sort(function (a, b) { return evStamp(a) - evStamp(b); });
+  var n = 0;
+
+  evs.forEach(function (e) {
+    if (!e || !e.date) return;
+    var st = evStamp(e);
+    if (!st) return;
+    n++;
+
+    L.push('BEGIN:VEVENT');
+    L.push('UID:lumen-ev-' + e.id + '@lumen');
+    L.push('DTSTAMP:' + nowU);
+    L.push('DTSTART:' + icsUTC(new Date(st)));
+    /* 默认给 30 分钟时长，避免部分日历显示成 0 分钟 */
+    L.push('DTEND:' + icsUTC(new Date(st + 1800000)));
+    L.push('SUMMARY:' + icsEsc(e.name || '事件'));
+    var desc = [];
+    desc.push('来自 晨昏 LUMEN');
+    if (e.yearly) desc.push('每年重复');
+    if (e.extras && e.extras.length) {
+      e.extras.forEach(function (x) { desc.push('提醒：' + exLabel(x)); });
+    }
+    L.push('DESCRIPTION:' + icsEsc(desc.join(' / ')));
+    if (e.yearly) L.push('RRULE:FREQ=YEARLY');
+
+    /* 到时提醒 → 事件发生时提醒（TRIGGER:0 分钟） */
+    if (e.atRemind !== 0) {
+      L.push('BEGIN:VALARM');
+      L.push('ACTION:DISPLAY');
+      L.push('DESCRIPTION:' + icsEsc((e.name || '事件') + '：时间到了'));
+      L.push('TRIGGER:-PT0M');
+      L.push('END:VALARM');
+    }
+
+    /* 提前类额外提醒 → 直接做成 VALARM 提前量 */
+    (e.extras || []).forEach(function (x, i) {
+      if (x.kind !== 'before') return;
+      var ms = ((x.days || 0) * 86400 + (x.hours || 0) * 3600 + (x.mins || 0) * 60) * 1000;
+      if (!ms) return;
+      L.push('BEGIN:VALARM');
+      L.push('ACTION:DISPLAY');
+      L.push('DESCRIPTION:' + icsEsc((e.name || '事件') + '：' + exLabel(x)));
+      L.push('TRIGGER:' + icsDurMin(ms));
+      L.push('END:VALARM');
+    });
+
+    L.push('END:VEVENT');
+
+    /* 「此后 / 指定」类提醒时间点独立，日历 VALARM 无法表达，
+       单独生成一条提醒事件，保证也能响。 */
+    (e.extras || []).forEach(function (x, i) {
+      if (x.kind === 'before') return;
+      var t2 = exStamp(e, x);
+      if (!t2) return;
+      L.push('BEGIN:VEVENT');
+      L.push('UID:lumen-ex-' + e.id + '-' + i + '@lumen');
+      L.push('DTSTAMP:' + nowU);
+      L.push('DTSTART:' + icsUTC(new Date(t2)));
+      L.push('DTEND:' + icsUTC(new Date(t2 + 600000)));
+      L.push('SUMMARY:' + icsEsc('🔔 ' + (e.name || '事件') + '（' + exLabel(x) + '）'));
+      L.push('DESCRIPTION:' + icsEsc('来自 晨昏 LUMEN 的额外提醒'));
+      L.push('BEGIN:VALARM');
+      L.push('ACTION:DISPLAY');
+      L.push('DESCRIPTION:' + icsEsc((e.name || '事件') + '：' + exLabel(x)));
+      L.push('TRIGGER:-PT0M');
+      L.push('END:VALARM');
+      L.push('END:VEVENT');
+    });
+  });
+
+  L.push('END:VCALENDAR');
+  return { text: L.join('\r\n'), count: n };
+}
+
+/* ---- 5. 导出动作（带用法说明） ---- */
+function exportICS() {
+  var r = buildICS();
+  if (!r.count) { toast('还没有事件可导出'); return; }
+
+  var ok = download('lumen-events.ics', r.text, 'text/calendar;charset=utf-8');
+
+  openDlg({
+    title: '已生成日历文件',
+    sub: '共 ' + r.count + ' 个事件',
+    body: '<div style="font-size:13px;line-height:1.75">' +
+      '<div style="padding:10px 12px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);margin-bottom:10px">' +
+      '文件已下载：<b>lumen-events.ics</b><br>' +
+      (ok ? '在通知栏点它，选「日历」打开即可。' : '如没自动下载，可长按下面按钮复制内容，自行保存为 .ics 文件。') +
+      '</div>' +
+      '<div style="color:var(--tx2)">' +
+      '<b>OPPO 一般这样操作：</b><br>' +
+      '1. 下拉通知栏，找到刚下载的文件点一下<br>' +
+      '2. 弹出选择时选「日历」<br>' +
+      '3. 确认导入，之后由手机日历负责提醒<br>' +
+      '<span style="color:var(--tx3)">导入后提醒与网页是否打开无关，锁屏也会响。</span>' +
+      '</div></div>' +
+      '<div style="margin-top:10px"><textarea class="inp" id="icsRaw" readonly style="height:110px;font-size:11px">' +
+      icsEsc(r.text.slice(0, 2000)) + '</textarea></div>',
+    ok: '知道了',
+    cancel: null
+  });
+}
+
+/* ---- 6. 在事件提醒页加入口：顶部图标 + 底部按钮 ---- */
+(function () {
+  if (typeof drawCd2 !== 'function' || drawCd2.__icsPatch) return;
+  var _d = drawCd2;
+  drawCd2 = function () {
+    _d.apply(this, arguments);
+    try {
+      var b = document.getElementById('shBody');
+      if (!b) return;
+      /* 顶部图标：日历带加号 */
+      var act = document.querySelector('#shActs, .sheetacts, #shBody');
+      if (act && !document.getElementById('cdIcsTop')) {
+        var tp = document.createElement('button');
+        tp.id = 'cdIcsTop';
+        tp.className = 'iconbtn';
+        tp.title = '导出到手机日历';
+        tp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M12 14v4M10 16h4"/></svg>';
+        tp.onclick = exportICS;
+        /* 放进页面里的事件卡片头部操作区 */
+        var ch = b.querySelector('.ch');
+        if (ch) ch.appendChild(tp);
+      }
+      /* 底部按钮：在「＋新事件」后面 */
+      if (!document.getElementById('cdIcs')) {
+        var add = document.getElementById('cdAdd');
+        if (add && add.parentNode) {
+          var btn = document.createElement('button');
+          btn.id = 'cdIcs';
+          btn.className = 'btn wide';
+          btn.style.marginTop = '8px';
+          btn.innerHTML = '📅 导出到手机日历';
+          btn.onclick = exportICS;
+          add.parentNode.insertBefore(btn, add.nextSibling);
+        }
+      }
+      var tip = document.getElementById('cdIcsTip');
+      if (!tip) {
+        var last = b.querySelector('.xs.mut2');
+        if (last && last.parentNode) {
+          var t2 = document.createElement('div');
+          t2.id = 'cdIcsTip';
+          t2.className = 'xs mut2';
+          t2.style.cssText = 'margin-top:6px;text-align:center';
+          t2.textContent = '关掉软件也想收到提醒？导出到手机日历即可';
+          last.parentNode.appendChild(t2);
+        }
+      }
+    } catch (e) { }
+  };
+  drawCd2.__icsPatch = 1;
+})();
+
 })();
 </script>
 </body>
