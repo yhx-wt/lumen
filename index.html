@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="theme-color" content="#0B0C11">
 <meta name="color-scheme" content="dark light">
+<link rel="manifest" href="./manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>晨昏 LUMEN</title>
 <style>
 /* ================= 设计令牌 ================= */
@@ -19637,6 +19641,34 @@ function patchDlg() {
 
 })();
 
+})();
+</script>
+
+<script>
+/* ===== PWA：注册 Service Worker + 发现新版自动刷新 ===== */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var reloaded = false;
+  function reg() {
+    navigator.serviceWorker.register('./sw.js').then(function (r) {
+      /* 首次安装：拿到控制权后刷新一次，确保页面由 SW 接管 */
+      if (!navigator.serviceWorker.controller) return;
+      r.addEventListener('updatefound', function () {
+        var nw = r.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', function () {
+          /* 新版本已装好 → 通知它立刻接管 → 刷新拿新页面 */
+          if (nw.state === 'installed' && navigator.serviceWorker.controller && !reloaded) {
+            reloaded = true;
+            try { nw.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {}
+            setTimeout(function () { location.reload(); }, 300);
+          }
+        });
+      });
+    }).catch(function () {});
+  }
+  if (document.readyState === 'complete') reg();
+  else window.addEventListener('load', reg);
 })();
 </script>
 </body>
