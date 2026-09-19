@@ -19373,6 +19373,270 @@ function patchDlg() {
   }
 })();
 
+/* ---------- 第三十八轮：圆环 + 右侧信息（顶层声明，覆盖旧实现） ---------- */
+  function habitBoxes2(h) {
+    var t = Math.max(1, hTimes(h));
+    var cnt = hCount(h, CUR);
+    var col = hRingColor2(h, cnt, t);
+
+    var R = 42, C = 2 * Math.PI * R;
+    var seg = C / t;
+    var gap = t > 1 ? Math.min(6, seg * 0.16) : 0;
+    var arc = Math.max(2, seg - gap);
+    var fill = Math.min(cnt, t);
+
+    var svg = '<svg class="hring2" viewBox="0 0 112 112" data-ring="' + h.id + '">' +
+      '<circle class="hring2-bg" cx="56" cy="56" r="' + R + '"></circle>' +
+      '<g transform="rotate(-90 56 56)">';
+    for (var i = 0; i < t; i++) {
+      var on = i < fill;
+      svg += '<circle class="hring2-seg' + (on ? ' on' : '') + '" cx="56" cy="56" r="' + R + '"' +
+        ' stroke-dasharray="' + arc.toFixed(2) + ' ' + (C - arc).toFixed(2) + '"' +
+        ' stroke-dashoffset="' + (-i * seg).toFixed(2) + '"' +
+        (on ? ' style="stroke:' + col + '"' : '') + '></circle>';
+    }
+    svg += '</g></svg>';
+
+    var pct = t > 0 ? Math.round(cnt / t * 100) : 0;
+    var over = cnt > t;
+
+    /* 右侧信息：今日得分 / 本周期次数 / 周期总分 */
+    var d0 = hDayScore2(h, today());
+    var todayScore = (d0 === null || d0 === undefined) ? 0 : d0;
+    var perN = hPeriodCount(h, today());
+    var perPts = hScored(h, today()) ? hPeriodPts(h, today()) : 0;
+    var sgn = function (v) { return (v > 0 ? '+' : '') + r1(v); };
+    var colT = todayScore > 0 ? 'var(--ach)' : todayScore < 0 ? 'var(--danger)' : 'var(--tx2)';
+
+    return '<div class="hring2wrap">' +
+      '<div class="hring2-box">' + svg +
+      '<div class="hring2-mid"><span class="hring2-n"' +
+      (over ? ' style="color:' + col + '"' : '') + '>' + cnt +
+      '<span class="hring2-s">/' + t + '</span></span>' +
+      '<span class="hring2-p">' + pct + '%</span></div></div>' +
+      '<div class="hring2-info">' +
+      '<div class="hring2-i1"><span class="k">今日得分</span>' +
+      '<span class="v" style="color:' + colT + '">' + sgn(todayScore) + '</span></div>' +
+      '<div class="hring2-i2">' +
+      '<div class="r"><span class="k2">本周期</span><span class="v2">' + perN + ' 次</span></div>' +
+      '<div class="r"><span class="k2">周期总分</span><span class="v2" style="color:' +
+      (perPts >= 0 ? 'var(--ach)' : 'var(--danger)') + '">' + sgn(perPts) + '</span></div>' +
+      '</div></div>' +
+      '<div class="hring2-btns">' +
+      '<button class="hring2-b plus" data-hb="' + h.id + '" data-i="' + t + '" title="加一次">＋</button>' +
+      '<button class="hring2-b minus" data-hm="' + h.id + '" title="减一次">−</button>' +
+      '</div></div>';
+  }
+  window.__HB2 = habitBoxes2;
+
+
+/* ========== 第三十八轮：我的页加高 / 圆环右侧信息 / 习惯截止与历史 ========== */
+(function () {
+  var s = document.createElement('style');
+  s.textContent = [
+    /* ---- 1. 我的页：头像与卡片整体加高，填满下方空白 ---- */
+    '#p-mine .avatar{width:clamp(68px,10.6vh,92px)!important;height:clamp(68px,10.6vh,92px)!important;' +
+    'font-size:clamp(32px,5vh,42px)!important;border-radius:50%;overflow:hidden;flex:0 0 auto}',
+    '#p-mine .profile{padding:clamp(12px,2vh,18px) 14px!important;gap:13px!important;' +
+    'margin-bottom:9px!important;align-items:center}',
+    '#p-mine .profile .nm{font-size:clamp(17px,2.6vh,20px)!important;font-weight:700!important;line-height:1.35}',
+    '#p-mine .profile .mo{font-size:13.5px!important;line-height:1.5;margin-top:3px}',
+    '#p-mine .profile .row{margin-top:8px!important;gap:6px}',
+    '#p-mine .profile .tag{padding:4px 9px;font-size:12px}',
+    '#p-mine .balcard{padding:14px 15px!important;margin-bottom:9px!important}',
+    '#p-mine .balcard .bv{font-size:clamp(28px,4.4vh,36px)!important}',
+    '#p-mine .balmini{margin-bottom:9px!important;gap:8px}',
+    '#p-mine .balmini>div{padding:10px 6px!important}',
+    '#p-mine .balmini>div b{font-size:15px!important}',
+    '#p-mine .quickin{gap:8px;margin-bottom:9px}',
+    '#p-mine .quickin .inp{height:44px!important;font-size:14px!important}',
+    '#p-mine .card.tight{padding:12px!important}',
+    '#p-mine .ch{margin-bottom:9px!important}',
+    '@media (max-height:700px){' +
+    '#p-mine .avatar{width:58px!important;height:58px!important;font-size:27px!important}' +
+    '#p-mine .profile{padding:10px 12px!important;gap:10px!important}' +
+    '#p-mine .balcard{padding:11px 13px!important}' +
+    '#p-mine .quickin .inp{height:40px!important}}',
+
+    /* ---- 2. 去掉底部多余的「标准 / 记录」按钮 ---- */
+    '.ho-dtl{display:none!important}',
+
+    /* ---- 3. 圆环右侧信息卡 ---- */
+    '.hring2wrap{justify-content:flex-start;gap:14px}',
+    '.hring2-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px;padding:2px 0}',
+    '.hring2-i1{display:flex;flex-direction:column;gap:2px}',
+    '.hring2-i1 .k{font-size:11.5px;color:var(--tx3);font-weight:600}',
+    '.hring2-i1 .v{font-size:24px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}',
+    '.hring2-i2{display:flex;flex-direction:column;gap:4px;padding-top:6px;border-top:1px solid var(--line)}',
+    '.hring2-i2 .r{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px}',
+    '.hring2-i2 .r .k2{color:var(--tx3)}',
+    '.hring2-i2 .r .v2{font-weight:700;font-variant-numeric:tabular-nums}',
+    /* ---- 4. 概览卡 hhero：从两行高块压成一行紧凑条 ---- */
+    '.hhero{display:flex!important;align-items:center;gap:10px;' +
+    'padding:8px 12px!important;margin-bottom:9px!important;min-height:0!important}',
+    '.hhero-l,.hhero-r{flex:1;display:flex!important;flex-direction:row!important;' +
+    'align-items:baseline!important;gap:6px}',
+    '.hhero-r{justify-content:flex-end;text-align:left!important}',
+    '.hhero-n{font-size:19px!important;font-weight:760!important;line-height:1.1}',
+    '.hhero-n2{font-size:19px!important;font-weight:760!important;line-height:1.1}',
+    '.hhero-n2 .sl{font-size:13px!important}',
+    '.hhero-t{font-size:11.5px;margin-top:0!important;order:2}'
+  ].join('\n');
+  document.head.appendChild(s);
+
+  /* ============ 数据：归档区 ============ */
+  function arch() { if (!Array.isArray(S.habitsArch)) S.habitsArch = []; return S.habitsArch; }
+
+  /* ---------- 删除习惯：截止（保留记录） / 彻底删除 ---------- */
+  window.__habitRemoveAsk = function (h) {
+    window.__RM_H = h;
+    openDlg({
+      title: '移除「' + h.name + '」',
+      sub: '两种方式，选一个',
+      ok: false,
+      body: '<div class="card tight" style="padding:12px;margin-bottom:9px;cursor:pointer" id="rmStop">' +
+        '<div style="display:flex;align-items:center;gap:9px">' +
+        '<span style="font-size:20px">⏸</span>' +
+        '<div style="flex:1;min-width:0"><b style="font-size:14.5px">截止（保留记录）</b>' +
+        '<div class="xs mut2" style="margin-top:3px;line-height:1.5">不再每天打卡，此前的记录与积分都保留，' +
+        '可在「历史」里随时继续</div></div></div></div>' +
+        '<div class="card tight" style="padding:12px;cursor:pointer;border-color:color-mix(in srgb,var(--danger) 34%,transparent)" id="rmDel">' +
+        '<div style="display:flex;align-items:center;gap:9px">' +
+        '<span style="font-size:20px">🗑</span>' +
+        '<div style="flex:1;min-width:0"><b style="font-size:14.5px;color:var(--danger)">彻底删除</b>' +
+        '<div class="xs mut2" style="margin-top:3px;line-height:1.5">连同所有打卡记录和已产生的积分一起清除，无法恢复</div>' +
+        '</div></div></div>',
+    });
+  };
+  /* 委托：截止 */
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('#rmStop') : null;
+    if (!b) return;
+    var h = window.__RM_H; if (!h) return;
+    S.habits = (S.habits || []).filter(function (x) { return x.id !== h.id; });
+    var A = arch();
+    if (!A.some(function (x) { return x.id === h.id; })) A.push(h);
+    try { HK_SEL = null; } catch (e2) { }
+    save(); closeDlg();
+    if (typeof drawHabit4 === 'function') drawHabit4();
+    toast('已截止，可在「历史」里继续');
+  }, true);
+  /* 委托：彻底删除 */
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('#rmDel') : null;
+    if (!b) return;
+    var h = window.__RM_H; if (!h) return;
+    confirmBox('彻底删除「' + h.name + '」', '打卡记录与积分一并清除，无法恢复', function () {
+      S.habits = (S.habits || []).filter(function (x) { return x.id !== h.id; });
+      S.habitsArch = arch().filter(function (x) { return x.id !== h.id; });
+      Object.keys(S.days).forEach(function (k) { if (S.days[k].habits) delete S.days[k].habits[h.id]; });
+      try { HK_SEL = null; } catch (e2) { }
+      save(); closeDlg();
+      if (typeof drawHabit4 === 'function') drawHabit4();
+      toast('已彻底删除');
+    }, '删除');
+  }, true);
+
+  /* ---------- 历史习惯弹窗 ---------- */
+  window.__habitArchiveDlg = function () {
+    var A = arch();
+    var body = '';
+    if (!A.length) {
+      body = '<div class="hint" style="text-align:center;padding:26px 10px">' +
+        '还没有截止的习惯<br><span class="xs">在习惯上点 🗑 选择「截止」，就会移到这里</span></div>';
+    } else {
+      body = A.map(function (h) {
+        var bad = hKind(h) === 'bad';
+        var t = hTimes(h);
+        var freq = h.freq === 'week' ? '每周' : h.freq === 'month' ? '每月' : '每天';
+        /* 统计历史累计记录 */
+        var rec = 0;
+        Object.keys(S.days || {}).forEach(function (k) {
+          var v = (S.days[k].habits || {})[h.id]; if (v) rec += v;
+        });
+        return '<div class="card tight" style="padding:11px 12px;margin-bottom:8px;' +
+          'border-color:color-mix(in srgb,' + (bad ? 'var(--danger)' : 'var(--ok)') + ' 30%,transparent)">' +
+          '<div style="display:flex;align-items:center;gap:9px">' +
+          '<i class="hdot" style="background:' + (bad ? 'var(--danger)' : 'var(--ok)') + '"></i>' +
+          '<div style="flex:1;min-width:0"><b style="font-size:14.5px">' + esc(h.name) + '</b>' +
+          '<div class="xs mut2" style="margin-top:2px">' + freq + ' ' + t + ' 次 · 累计记录 ' + rec + ' 次</div></div>' +
+          '<button class="btn sm" data-res="' + h.id + '" style="flex:0 0 auto;min-height:34px">继续</button>' +
+          '<button class="iconbtn" data-kill="' + h.id + '" title="彻底删除">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg>' +
+          '</button></div></div>';
+      }).join('');
+    }
+    openDlg({
+      title: '历史习惯', sub: A.length ? ('共 ' + A.length + ' 个已截止') : '', ok: false,
+      body: body,
+    });
+  };
+
+  /* 委托：历史里「继续」 */
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('[data-res]') : null;
+    if (!b) return;
+    var h = arch().filter(function (x) { return x.id === b.dataset.res; })[0];
+    if (!h) return;
+    S.habitsArch = arch().filter(function (x) { return x.id !== h.id; });
+    if (!S.habits) S.habits = [];
+    S.habits.push(h);
+    save(); closeDlg();
+    if (typeof drawHabit4 === 'function') drawHabit4();
+    toast('已恢复「' + h.name + '」');
+  }, true);
+  /* 委托：历史里「彻底删除」 */
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('[data-kill]') : null;
+    if (!b) return;
+    var h = arch().filter(function (x) { return x.id === b.dataset.kill; })[0];
+    if (!h) return;
+    confirmBox('彻底删除「' + h.name + '」', '打卡记录与积分一并清除', function () {
+      S.habitsArch = arch().filter(function (x) { return x.id !== h.id; });
+      Object.keys(S.days).forEach(function (k) { if (S.days[k].habits) delete S.days[k].habits[h.id]; });
+      save(); closeDlg(); window.__habitArchiveDlg();
+      if (typeof drawHabit4 === 'function') drawHabit4();
+      toast('已彻底删除');
+    }, '删除');
+  }, true);
+
+  /* ---------- 1) 删除按钮改走「截止 / 删除」选择 ---------- */
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('[data-hd2]') : null;
+    if (!b) return;
+    var id = b.dataset.hd2;
+    var h = (S.habits || []).filter(function (x) { return x.id === id; })[0];
+    if (!h) return;
+    e.stopPropagation();
+    e.preventDefault();
+    setTimeout(function () { window.__habitRemoveAsk(h); }, 10);
+  }, true);
+
+  /* ---------- 2) 习惯页顶部插入「历史」按钮（在复制左边） ---------- */
+  function isHabitSheet() {
+    var t = document.querySelector('#shTitle');
+    return !!(t && /习惯/.test(t.textContent || '')) && !!document.querySelector('#sheet.on');
+  }
+  setInterval(function () {
+    if (!isHabitSheet()) return;
+    var acts = document.querySelector('#shActs');
+    if (!acts) return;
+    if (acts.querySelector('[data-harch]')) return;
+    var btn = document.createElement('button');
+    btn.className = 'iconbtn';
+    btn.setAttribute('data-harch', '1');
+    btn.title = '历史习惯';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+      'stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/>' +
+      '<path d="M3.5 5.5V11H9"/><path d="M12 8v4.5l3 1.8"/></svg>';
+    btn.onclick = function () { window.__habitArchiveDlg(); };
+    /* 插到最前：在复制与叉号的左边 */
+    var first = acts.querySelector('button');
+    if (first) acts.insertBefore(btn, first); else acts.appendChild(btn);
+  }, 300);
+
+})();
+
 })();
 </script>
 </body>
