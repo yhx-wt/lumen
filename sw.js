@@ -1,61 +1,63 @@
-/* LUMEN Service Worker —— 网络优先，保证每次发布都能拿到新版 */
-const CACHE = 'lumen-v4';            /* 版本号：每次发布若仍不生效，把这个号 +1 */
-const ASSETS = ['./', './index.html', './manifest.json'];
+/* 晨昏 LUMEN · Service Worker（修正版）
+   1. 只缓存真实存在的文件，不引用 icons/*.png（避免 addAll 整体失败）
+   2. 跨域（天气 Open-Meteo）一律放行，不进缓存
+   3. 页面导航「网络优先」：保证你总能拿到最新版本，断网才回退缓存
+*/
+const VERSION = 'lumen-v2';
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS).catch(() => {}))
-      .then(() => self.skipWaiting())          /* 装完立刻接管，不等旧页面关闭 */
-  );
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(VERSION).then((c) => c.add('./index.html').catch(() => {})));
 });
 
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-
-  /* 页面导航 & 主文档：网络优先，拿不到再回缓存（离线兜底） */
-  const isDoc =
-    req.mode === 'navigate' ||
-    (req.headers.get('accept') || '').indexOf('text/html') > -1;
-
-  if (isDoc) {
-    e.respondWith(
-      fetch(req)
-        .then(r => {
-          const copy = r.clone();
-          caches.open(CACHE).then(c => c.put('./index.html', copy)).catch(() => {});
-          return r;
-        })
-        .catch(() => caches.match('./index.html').then(r => r || caches.match('./')))
-    );
-    return;
-  }
-
-  /* 其它静态资源：缓存优先，但后台顺带更新 */
-  e.respondWith(
-    caches.match(req).then(res => {
-      const net = fetch(req)
-        .then(r => {
-          const copy = r.clone();
-          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-          return r;
-        })
-        .catch(() => res);
-      return res || net;
-    })
-  );
-});
-
-self.addEventListener('activate', e => {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-/* 页面可发 {type:'SKIP_WAITING'} 立即激活新版本 */
-self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+
+  // 跨域（天气接口等）直接放行，绝不能缓存，否则天气会一直是旧的
+  if (url.origin !== self.location.origin) return;
+
+  // 导航请求：网络优先
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(VERSION).then((c) => c.put('./index.html', copy)).catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match('./index.html').then((r) => r || Response.error()))
+    );
+    return;
+  }
+
+  // 同源静态资源：缓存优先 + 后台更新
+  e.respondWith(
+    caches.match(req).then((hit) => {
+      const net = fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(VERSION).then((c) => c.put(req, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => hit || Response.error());
+      return hit || net;
+    })
+  );
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
