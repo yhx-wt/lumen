@@ -4097,7 +4097,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v18。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v19。</span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -9319,16 +9319,16 @@ function achGridHtml(breakdown, total) {
   document.head.appendChild(s);
 })();
 
-/* ---- 底部说明文字缩短，避免占两行 ---- */
+/* ---- 去掉「余额 = 积分金额…」这句说明，用户反馈占空间 ---- */
 (function () {
   var _renderMine = renderMine;
   renderMine = function () {
     _renderMine();
-    var note = $$('#p-mine > .card.tight:last-child .xs.mut2')[0];
-    if (note) {
-      note.textContent = '余额 = 积分金额 + 收入 − 支出；花钱只减余额，不扣积分。';
-      note.style.cssText = 'margin-top:7px;line-height:1.4;font-size:10px';
-    }
+    try {
+      $$('#p-mine .minesrc .xs.mut2, #p-mine .minesrc .hint').forEach(function (n) {
+        if (/余额\s*=|不扣积分|元\s*=\s*\d/.test(n.textContent || '')) n.remove();
+      });
+    } catch (e) { }
   };
 })();
 
@@ -22551,22 +22551,8 @@ function shiftMonth(ym, delta) {
       document.querySelectorAll('#p-mine #mSyCard').forEach(function (n) { n.remove(); });
       /* 云同步入口不放在「我的」页 */
 
-      /* 补一个「设置」入口：新版 renderMine 不再渲染设置网格，
-         不补的话设置页（含外观/备份/云同步）根本打不开 */
-      var pm = document.querySelector('#p-mine');
-      if (pm && !pm.querySelector('#mSetEntry')) {
-        var se = document.createElement('div');
-        se.id = 'mSetEntry';
-        se.className = 'card sytop';
-        se.style.marginBottom = '12px';
-        se.innerHTML =
-          '<span class="sytico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">' +
-          '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>' +
-          '<div class="sytop-t"><b>设置</b><small>外观 · 备份 · 提醒</small></div>' +
-          '<span class="sytop-ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>';
-        se.onclick = function () { try { settingsSheet(); } catch (e4) { toast('打开设置失败'); } };
-        pm.appendChild(se);
-      }
+      /* 「我的」页右上角齿轮（mSetBtn）已能打开设置，底部不再插入设置入口 */
+      document.querySelectorAll('#p-mine #mSetEntry').forEach(function (n) { n.remove(); });
       var g = document.querySelector('#p-mine #mSets');
       if (!g) return;
       /* 移除已搬进应用内的项（专注/任务/天气/预算） */
