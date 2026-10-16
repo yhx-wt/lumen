@@ -22801,31 +22801,46 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   }
 })();
 
-/* V24：平板底部留白兜底 —— 实测底栏到视口底部的空隙，超过 10px 就压掉 */
+
+
+
+/* V25：底部留白根治
+   A) 用 visualViewport 真实可视高度（浏览器工具栏不算在内），杜绝底栏下方空一截
+   B) 主页「今日提醒」卡片不再被拉成空壳，多余空间分摊到各块之间 */
 (function () {
-  function fixBottom() {
+  function fit() {
     try {
-      if (innerWidth < 760) return;
-      var ph = document.querySelector('.phone'), tb = document.querySelector('.tabbar');
-      if (!ph || !tb) return;
-      /* 1) 容器高度对齐真实视口（Safari/standalone 下 100dvh 偶尔吃亏） */
-      var phb = ph.getBoundingClientRect();
-      if (Math.abs(innerHeight - phb.height) > 2) {
-        ph.style.height = innerHeight + 'px';
-        ph.style.maxHeight = innerHeight + 'px';
+      var vv = window.visualViewport;
+      var h = vv && vv.height ? vv.height : innerHeight;
+      var top = vv && vv.offsetTop ? vv.offsetTop : 0;
+      document.documentElement.style.setProperty('--vvh', h + 'px');
+      var ph = document.querySelector('.phone');
+      if (ph) {
+        ph.style.height = h + 'px';
+        ph.style.maxHeight = h + 'px';
+        ph.style.transform = top ? 'translateY(' + top + 'px)' : '';
       }
-      /* 2) 底栏下方空隙压到 <=10px */
-      var gap = innerHeight - tb.getBoundingClientRect().bottom;
-      if (gap > 10) {
-        var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
-        tb.style.paddingBottom = Math.max(4, cur - (gap - 8)) + 'px';
+      document.body.style.height = h + 'px';
+      /* 双保险：底栏底边若仍离可视底部 >8px，把差值从自身 padding 里扣掉 */
+      var tb = document.querySelector('.tabbar');
+      if (tb) {
+        var gap = (top + h) - tb.getBoundingClientRect().bottom;
+        if (gap > 8) {
+          var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
+          tb.style.paddingBottom = Math.max(3, cur - (gap - 6)) + 'px';
+        }
       }
     } catch (e) { }
   }
-  window.__fixBottom = fixBottom;
-  addEventListener('resize', fixBottom);
-  addEventListener('orientationchange', fixBottom);
-  [400, 1000, 2000].forEach(function (t) { setTimeout(fixBottom, t); });
+  window.__fitVP = fit;
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', fit);
+    visualViewport.addEventListener('scroll', fit);
+  }
+  addEventListener('resize', fit);
+  addEventListener('orientationchange', function () { setTimeout(fit, 300); });
+  [0, 300, 800, 1600].forEach(function (t) { setTimeout(fit, t); });
+  document.addEventListener('DOMContentLoaded', fit);
 })();
 
 </script>
@@ -22972,4 +22987,37 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 #tipTap{text-decoration:underline dotted;
   text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);
   text-underline-offset:3px}
+</style>
+
+<style id="qV25">
+/* ===== V25 底部留白根治 ===== */
+@media(min-width:760px){
+  /* 1) 底栏自身只留最小边距 */
+  .tabbar{padding-top:8px!important;
+          padding-bottom:calc(3px + env(safe-area-inset-bottom,0px) * .25)!important}
+
+  /* 2) 主页卡片随屏高放大，让内容真正占满，而不是留一大块空白 */
+  #p-home .hm{gap:clamp(10px,2vh,26px)!important}
+  #p-home .hm-clk{min-height:clamp(140px,17.5vh,186px)}
+  #p-home .hi-wx{min-height:clamp(78px,9.5vh,112px)}
+  #p-home .hm-tl>button{min-height:clamp(104px,13.6vh,156px);display:flex;flex-direction:column;justify-content:center}
+  #p-home .hm-tip{min-height:clamp(20px,2.4vh,30px);display:flex;align-items:center}
+
+  /* 3) 「今日提醒」限高：不再被拉成空壳，超出内部滚动 */
+  #p-home .hm-rm{flex:1 1 auto!important;max-height:44vh}
+  #p-home .hm-rm #hRm{overflow-y:auto!important;-webkit-overflow-scrolling:touch;
+    display:flex!important;flex-direction:column;justify-content:space-evenly}
+  /* 高屏（12.9 寸等）继续放大，避免卡片内空一大块 */
+  @media(min-height:1200px){
+    #p-home .hm-clk{min-height:clamp(180px,17.5vh,230px)}
+    #p-home .hi-wx{min-height:clamp(100px,9.5vh,140px)}
+    #p-home .hm-tl>button{min-height:clamp(130px,13.6vh,190px)}
+    #p-home .hm-rm{max-height:38vh}
+  }
+
+  /* 4) 应用页：网格行均摊，底部不再空一大块 */
+  #p-apps .appgrid{align-content:space-evenly!important}
+
+  .page{padding-bottom:0!important}
+}
 </style>
