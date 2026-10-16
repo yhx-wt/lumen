@@ -993,7 +993,7 @@ var DEF = {
   settings: {
     theme: 'dark', accent: 'violet', fs: 'm', hour24: false, sound: true, weekStart: 1,
     focus: 25, short: 5, long: 15, rounds: 4, autoNext: false, noise: 'off', noiseVol: .35,
-    name: '', avatar: '🌗', motto: '把今天过好，明天自然会来',
+    name: '', avatar: '🌗', motto: '把今天过好，明天自然会来', tipCustom: '',
     city: { name: '西安', lat: 34.3416, lon: 108.9398, admin: '陕西' }, cities: [],
     rainAlert: 30, budget: 0, waterGoal: 2000, waterCup: 250,
     apps: ['focus', 'task', 'money', 'journal', 'habit', 'countdown', 'weather', 'note', 'schulte', 'breath', 'tools', 'achieve', 'water', 'sleep', 'study', 'remind'],
@@ -1411,6 +1411,10 @@ function weekNo(d) {
   return Math.ceil(((t - new Date(t.getFullYear(), 0, 1)) / 86400000 + 1) / 7);
 }
 function tipOfDay() {
+  try {
+    var c = (S && S.settings && S.settings.tipCustom) ? String(S.settings.tipCustom).trim() : '';
+    if (c) return c;                       /* 自定义语录优先 */
+  } catch (e) { }
   var a = ['把今天过好，明天自然会来', '一口气吃不成胖子，一步一步来', '先做完最难的那件事',
     '你已经做得很好了', '专注此刻，别的事等一会儿', '休息也是计划的一部分'];
   var d = new Date();
@@ -3587,7 +3591,7 @@ function renderMine() {
     ['task', '任务', '优先·积分'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设置'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '提示音开' : '提示音关'], ['help', '快捷键', '键盘操作'],
-    ['info', '关于', 'v3.0'], ['sync', '云同步', '多设备'],
+    ['info', '关于', 'v3.1'], ['sync', '云同步', '多设备'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
   $('#p-mine').innerHTML =
@@ -3667,13 +3671,20 @@ function lookDlg() {
       }).join('') + '</div></div>' +
       '<div class="fld" style="margin-top:12px"><label>文字大小</label><div class="segline sm" id="lF"><button data-v="s">小</button><button data-v="m">中</button><button data-v="l">大</button><button data-v="xl">特大</button></div></div>' +
       '<div class="fld" style="margin-top:12px"><label>时间格式</label><div class="segline sm" id="lH"><button data-v="1">24 小时制</button><button data-v="0">12 小时制</button></div></div>' +
-      '<div class="fld" style="margin-top:12px"><label>每周首日</label><div class="segline sm" id="lW"><button data-v="1">周一</button><button data-v="0">周日</button></div></div>',
+      '<div class="fld" style="margin-top:12px"><label>每周首日</label><div class="segline sm" id="lW"><button data-v="1">周一</button><button data-v="0">周日</button></div></div>' +
+      '<div class="fld" style="margin-top:12px"><label>主页语录</label><input class="inp" id="lTip" maxlength="30" placeholder="留空则每日自动轮换" value="' + esc(st.tipCustom || '') + '"></div>' +
+      '<div class="xs mut2" style="margin-top:7px;line-height:1.7">写一句你想在主页看到的话，会固定显示；清空后恢复每日轮换。</div>',
     ok: false,
     onOpen: function () {
       bindSeg('#lT', st.theme, function (v) { st.theme = v; applyTheme(); save(); });
       bindSeg('#lF', st.fs, function (v) { st.fs = v; applyTheme(); save(); });
       bindSeg('#lH', st.hour24 ? '1' : '0', function (v) { st.hour24 = v === '1'; save(); tickClock(); });
       bindSeg('#lW', String(st.weekStart), function (v) { st.weekStart = +v; save(); });
+      var tp = $('#lTip');
+      if (tp) tp.oninput = function () {
+        st.tipCustom = tp.value.trim(); save();
+        try { var el = document.querySelector('#p-home .hm-tip'); if (el) el.textContent = tipOfDay(); } catch (e) { }
+      };
       $$('#lA button').forEach(function (b) {
         b.classList.toggle('on', b.dataset.v === st.accent);
         b.onclick = function () { st.accent = b.dataset.v; applyTheme(); save(); $$('#lA button').forEach(function (x) { x.classList.toggle('on', x === b); }); };
@@ -4099,7 +4110,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v22。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v23。</span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
