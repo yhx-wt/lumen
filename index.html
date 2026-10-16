@@ -1420,6 +1420,30 @@ function tipOfDay() {
   var d = new Date();
   return a[(d.getDate() + d.getHours()) % a.length];
 }
+/* 点主页那句话直接改 */
+function tipDlg() {
+  var st = S.settings;
+  openDlg({
+    title: '主页语录', sub: '也可以直接点主页上那句话修改',
+    body: '<div class="fld"><label>固定显示这句</label><input class="inp" id="tpV" maxlength="30" placeholder="留空 = 每日自动轮换" value="' + esc(st.tipCustom || '') + '"></div>' +
+      '<div class="xs mut2" style="margin-top:9px;line-height:1.85">填了就一直显示这一句；清空后恢复每日自动轮换。</div>' +
+      '<div class="xs mut2" style="margin-top:7px">当前显示：<b style="color:var(--tx)">' + esc(tipOfDay()) + '</b></div>',
+    ok: '保存',
+    onOk: function () {
+      var v = ($('#tpV') ? $('#tpV').value : '').trim();
+      st.tipCustom = v; save();
+      if (typeof renderHome === 'function') renderHome();
+      toast(v ? '已保存' : '已恢复每日轮换');
+    }
+  });
+}
+/* 点主页时钟直接切 12/24 小时制 */
+function toggleHour24() {
+  var st = S.settings;
+  st.hour24 = !st.hour24; save();
+  tickClock();
+  toast(st.hour24 ? '已切换为 24 小时制' : '已切换为 12 小时制');
+}
 
 function renderHome() {
   var host = $('#p-home');
@@ -3670,21 +3694,13 @@ function lookDlg() {
         return '<button data-v="' + a[0] + '" title="' + a[0] + '" style="background:linear-gradient(135deg,' + a[1] + ',' + a[2] + ')"></button>';
       }).join('') + '</div></div>' +
       '<div class="fld" style="margin-top:12px"><label>文字大小</label><div class="segline sm" id="lF"><button data-v="s">小</button><button data-v="m">中</button><button data-v="l">大</button><button data-v="xl">特大</button></div></div>' +
-      '<div class="fld" style="margin-top:12px"><label>时间格式</label><div class="segline sm" id="lH"><button data-v="1">24 小时制</button><button data-v="0">12 小时制</button></div></div>' +
       '<div class="fld" style="margin-top:12px"><label>每周首日</label><div class="segline sm" id="lW"><button data-v="1">周一</button><button data-v="0">周日</button></div></div>' +
-      '<div class="fld" style="margin-top:12px"><label>主页语录</label><input class="inp" id="lTip" maxlength="30" placeholder="留空则每日自动轮换" value="' + esc(st.tipCustom || '') + '"></div>' +
-      '<div class="xs mut2" style="margin-top:7px;line-height:1.7">写一句你想在主页看到的话，会固定显示；清空后恢复每日轮换。</div>',
+      '<div class="xs mut2" style="margin-top:10px;line-height:1.8">时间制式：点主页<b>时钟</b>切换 12/24 小时制。<br>主页语录：点主页<b>那句话</b>直接修改。</div>',
     ok: false,
     onOpen: function () {
       bindSeg('#lT', st.theme, function (v) { st.theme = v; applyTheme(); save(); });
       bindSeg('#lF', st.fs, function (v) { st.fs = v; applyTheme(); save(); });
-      bindSeg('#lH', st.hour24 ? '1' : '0', function (v) { st.hour24 = v === '1'; save(); tickClock(); });
       bindSeg('#lW', String(st.weekStart), function (v) { st.weekStart = +v; save(); });
-      var tp = $('#lTip');
-      if (tp) tp.oninput = function () {
-        st.tipCustom = tp.value.trim(); save();
-        try { var el = document.querySelector('#p-home .hm-tip'); if (el) el.textContent = tipOfDay(); } catch (e) { }
-      };
       $$('#lA button').forEach(function (b) {
         b.classList.toggle('on', b.dataset.v === st.accent);
         b.onclick = function () { st.accent = b.dataset.v; applyTheme(); save(); $$('#lA button').forEach(function (x) { x.classList.toggle('on', x === b); }); };
@@ -4110,7 +4126,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v23。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v24。</span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -8129,14 +8145,14 @@ function renderHome() {
     /* 时钟卡：左边是「日期 + 时间」，右边是年进度等 */
     '<div class="hm-clk"><div class="hm-left">' +
     '<div class="hm-date"><b>' + (now.getMonth() + 1) + '月' + now.getDate() + '日</b> ' + wk + (ln ? ' · ' + ln : '') + '</div>' +
-    '<div class="hm-t"><span id="clkH">' + (st.hour24 ? pad(HH) : HH) + ':' + pad(now.getMinutes()) + '</span><i id="clkS">:' + pad(now.getSeconds()) + '</i><u id="clkAp">' + (st.hour24 ? '' : (h24 < 12 ? 'AM' : 'PM')) + '</u></div>' +
+    '<div class="hm-t" id="clkTap" role="button" title="点击切换 12/24 小时制" style="cursor:pointer"><span id="clkH">' + (st.hour24 ? pad(HH) : HH) + ':' + pad(now.getMinutes()) + '</span><i id="clkS">:' + pad(now.getSeconds()) + '</i><u id="clkAp">' + (st.hour24 ? '' : (h24 < 12 ? 'AM' : 'PM')) + '</u></div>' +
     '<div class="hm-sub">第 ' + weekNo(now) + ' 周 · ' + zodiac(now.getMonth() + 1, now.getDate()) + '座</div>' +
     '</div>' +
     '<div class="hm-meta"><div class="hm-pg"><div class="l"><span>' + now.getFullYear() + ' 年进度</span><b>' + pct.toFixed(1) + '%</b></div>' +
     '<div class="b"><i id="yFill"></i></div>' +
     '<div class="z" style="margin-top:3px">今年还剩 <b style="color:var(--tx)">' + left + '</b> 天</div></div>' +
     '</div></div>' +
-    '<div class="hm-tip">' + tipOfDay() + '</div>' +
+    '<div class="hm-tip" id="tipTap" role="button" title="点击修改这句话" style="cursor:pointer">' + tipOfDay() + '</div>' +
 
     '<div class="card tight" id="hWx" style="margin-bottom:9px">' + wHtml + alertHtml + '</div>' +
 
@@ -8149,6 +8165,8 @@ function renderHome() {
     '<div class="hm-rm"><div class="rmhead"><b>今日提醒</b><button class="mini" id="hRmAll">全部</button></div><div id="hRm"></div></div>' +
     '</div>';
 
+  var ctap = $('#clkTap'); if (ctap) ctap.onclick = toggleHour24;
+  var ttap = $('#tipTap'); if (ttap) ttap.onclick = tipDlg;
   var wxx = $('#hWx'); if (wxx) wxx.onclick = function () { openApp('weather'); };
   var hs = $('#hSet'); if (hs) hs.onclick = function () { goTab('mine'); };
   var ra = $('#hRmAll'); if (ra) ra.onclick = function () { appRemind(); };
@@ -22782,6 +22800,34 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
     f.__wx = 1;
   }
 })();
+
+/* V24：平板底部留白兜底 —— 实测底栏到视口底部的空隙，超过 10px 就压掉 */
+(function () {
+  function fixBottom() {
+    try {
+      if (innerWidth < 760) return;
+      var ph = document.querySelector('.phone'), tb = document.querySelector('.tabbar');
+      if (!ph || !tb) return;
+      /* 1) 容器高度对齐真实视口（Safari/standalone 下 100dvh 偶尔吃亏） */
+      var phb = ph.getBoundingClientRect();
+      if (Math.abs(innerHeight - phb.height) > 2) {
+        ph.style.height = innerHeight + 'px';
+        ph.style.maxHeight = innerHeight + 'px';
+      }
+      /* 2) 底栏下方空隙压到 <=10px */
+      var gap = innerHeight - tb.getBoundingClientRect().bottom;
+      if (gap > 10) {
+        var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
+        tb.style.paddingBottom = Math.max(4, cur - (gap - 8)) + 'px';
+      }
+    } catch (e) { }
+  }
+  window.__fixBottom = fixBottom;
+  addEventListener('resize', fixBottom);
+  addEventListener('orientationchange', fixBottom);
+  [400, 1000, 2000].forEach(function (t) { setTimeout(fixBottom, t); });
+})();
+
 </script>
 
 <style id="qTabletScale">
@@ -22901,4 +22947,29 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   }
   .sheet-h{min-height:58px!important;padding-top:12px!important;padding-bottom:12px!important}
 }
+</style>
+
+<style id="qTabletV24">
+/* ===== V24 平板修正 =====
+   1) 底部留白：iPad 上底栏下方空出一大块，压掉多余安全区，只留最小边距
+   2) 主页时钟 / 语录：可点（切换 12-24 小时制 / 改语录），样式上给一点可点提示 */
+
+@media(min-width:760px){
+  /* --- 1. 底栏下方留白压到最小：只保留 6px + 真实安全区的一半 --- */
+  .tabbar{padding-bottom:calc(6px + env(safe-area-inset-bottom,0px) * .45)!important;
+          padding-top:9px!important}
+  /* 容器高度严格等于视口，杜绝「页面只有 880px、下面空一截」 */
+  .phone{height:100dvh!important;max-height:100dvh!important;border-radius:0!important;
+         border:0!important;box-shadow:none!important}
+  body{padding:0!important;overflow:hidden}
+  /* 内容区底部不留多余空隙 */
+  .page{padding-bottom:0!important}
+}
+
+/* --- 2. 可点提示：轻按有反馈，不改变原有排版 --- */
+#clkTap,#tipTap{-webkit-tap-highlight-color:transparent;transition:opacity .15s}
+#clkTap:active,#tipTap:active{opacity:.55}
+#tipTap{text-decoration:underline dotted;
+  text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);
+  text-underline-offset:3px}
 </style>
