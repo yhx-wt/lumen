@@ -1,5 +1,5 @@
 /* LUMEN Service Worker —— 网络优先，保证每次发布都能拿到新版 */
-const CACHE = 'lumen-v27';            /* 版本号：每次发布若仍不生效，把这个号 +1 */
+const CACHE = 'lumen-v29';            /* 版本号：每次发布若仍不生效，把这个号 +1 */
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
