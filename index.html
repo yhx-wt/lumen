@@ -4126,7 +4126,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v24。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v26。</span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -22801,31 +22801,34 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   }
 })();
 
-/* V24：平板底部留白兜底 —— 实测底栏到视口底部的空隙，超过 10px 就压掉 */
+/* V26：底部留白兜底（用 visualViewport 真实可视高度） */
 (function () {
-  function fixBottom() {
+  function fit() {
     try {
-      if (innerWidth < 760) return;
-      var ph = document.querySelector('.phone'), tb = document.querySelector('.tabbar');
-      if (!ph || !tb) return;
-      /* 1) 容器高度对齐真实视口（Safari/standalone 下 100dvh 偶尔吃亏） */
-      var phb = ph.getBoundingClientRect();
-      if (Math.abs(innerHeight - phb.height) > 2) {
-        ph.style.height = innerHeight + 'px';
-        ph.style.maxHeight = innerHeight + 'px';
-      }
-      /* 2) 底栏下方空隙压到 <=10px */
-      var gap = innerHeight - tb.getBoundingClientRect().bottom;
-      if (gap > 10) {
-        var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
-        tb.style.paddingBottom = Math.max(4, cur - (gap - 8)) + 'px';
+      var vv = window.visualViewport;
+      var h = vv && vv.height ? vv.height : innerHeight;
+      var top = vv && vv.offsetTop ? vv.offsetTop : 0;
+      var ph = document.querySelector('.phone');
+      if (ph) { ph.style.height = h + 'px'; ph.style.maxHeight = h + 'px'; }
+      document.body.style.height = h + 'px';
+      var tb = document.querySelector('.tabbar');
+      if (tb) {
+        var gap = (top + h) - tb.getBoundingClientRect().bottom;
+        if (gap > 6) {
+          var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
+          tb.style.paddingBottom = Math.max(2, cur - (gap - 4)) + 'px';
+        }
       }
     } catch (e) { }
   }
-  window.__fixBottom = fixBottom;
-  addEventListener('resize', fixBottom);
-  addEventListener('orientationchange', fixBottom);
-  [400, 1000, 2000].forEach(function (t) { setTimeout(fixBottom, t); });
+  window.__fitVP = fit;
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', fit);
+    visualViewport.addEventListener('scroll', fit);
+  }
+  addEventListener('resize', fit);
+  addEventListener('orientationchange', function () { setTimeout(fit, 300); });
+  [0, 300, 900, 1800].forEach(function (t) { setTimeout(fit, t); });
 })();
 
 </script>
@@ -22950,23 +22953,38 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 </style>
 
 <style id="qTabletV24">
-/* ===== V24 平板修正 =====
-   1) 底部留白：iPad 上底栏下方空出一大块，压掉多余安全区，只留最小边距
-   2) 主页时钟 / 语录：可点（切换 12-24 小时制 / 改语录），样式上给一点可点提示 */
+/* ===== V26 平板修正 =====
+   思路：底部不留空 → 「今日提醒」卡片照旧撑满，但内容改为垂直居中，
+   上下留白对称；其余卡片温和放大（幅度远小于 V25），吸收掉一部分空白。 */
 
 @media(min-width:760px){
-  /* --- 1. 底栏下方留白压到最小：只保留 6px + 真实安全区的一半 --- */
-  .tabbar{padding-bottom:calc(6px + env(safe-area-inset-bottom,0px) * .45)!important;
-          padding-top:9px!important}
-  /* 容器高度严格等于视口，杜绝「页面只有 880px、下面空一截」 */
+  /* 1) 底栏贴底 */
+  .tabbar{padding-top:8px!important;padding-bottom:8px!important}
+
+  /* 2) 温和放大（V24 尺寸 → 仅 +20% 左右，不改内部字号） */
+  #p-home .hm{gap:clamp(11px,1.4vh,16px)!important}
+  #p-home .hm-clk{min-height:clamp(132px,14vh,150px)}
+  #p-home .hi-wx{min-height:clamp(104px,10.5vh,126px)}
+  #p-home .hm-tl>button{min-height:clamp(100px,11vh,120px);
+    display:flex;flex-direction:column;justify-content:center}
+  #p-home .hm-tip{min-height:clamp(20px,2.2vh,24px);display:flex;align-items:center}
+
+  /* 3) 「今日提醒」撑满但内容居中 —— 空白上下对称，不再全堆在下面 */
+  #p-home .hm-rm{flex:1 1 auto!important;min-height:0}
+  /* 内容居中用 auto margin（内容超出时自动失效，不会把顶部裁掉） */
+  #p-home .hm-rm #hRm{flex:1 1 auto!important;min-height:0;
+    display:flex!important;flex-direction:column;
+    overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+  #p-home .hm-rm #hRm>*:first-child{margin-top:auto}
+  #p-home .hm-rm #hRm>*:last-child{margin-bottom:auto}
+
+  .page{padding-bottom:0!important}
   .phone{height:100dvh!important;max-height:100dvh!important;border-radius:0!important;
          border:0!important;box-shadow:none!important}
   body{padding:0!important;overflow:hidden}
-  /* 内容区底部不留多余空隙 */
-  .page{padding-bottom:0!important}
 }
 
-/* --- 2. 可点提示：轻按有反馈，不改变原有排版 --- */
+/* 可点提示 */
 #clkTap,#tipTap{-webkit-tap-highlight-color:transparent;transition:opacity .15s}
 #clkTap:active,#tipTap:active{opacity:.55}
 #tipTap{text-decoration:underline dotted;
