@@ -3615,7 +3615,7 @@ function renderMine() {
     ['task', '任务', '优先·积分'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设置'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '提示音开' : '提示音关'], ['help', '快捷键', '键盘操作'],
-    ['info', '关于', 'v3.1'], ['sync', '云同步', '多设备'],
+    ['info', '关于', 'v3.1·b30'], ['sync', '云同步', '多设备'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
   $('#p-mine').innerHTML =
@@ -4126,7 +4126,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v29。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v30。<button class="mini" id="frReload" style="margin-left:6px;vertical-align:middle">强制刷新</button><span id="frTip" class="xs" style="margin-left:6px"></span></span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -6077,7 +6077,7 @@ function renderMine() {
     ['task', '任务', '排序'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '开' : '关'], ['help', '快捷键', '键盘'],
-    ['info', '关于', 'v3.1'], ['exchange', '兑换', '每' + r1(num(st.exRate, 10)) + '分'],
+    ['info', '关于', 'v3.1·b30'], ['exchange', '兑换', '每' + r1(num(st.exRate, 10)) + '分'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
   $('#p-mine').innerHTML =
@@ -7092,7 +7092,7 @@ function settingsSheet() {
     ['task', '任务', '排序'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '开' : '关'], ['dots', '图标红点', st.dots ? '开' : '关'],
-    ['help', '快捷键', '键盘'], ['sleep', '睡眠', '评分规则'], ['info', '关于', 'v3.1'],
+    ['help', '快捷键', '键盘'], ['sleep', '睡眠', '评分规则'], ['info', '关于', 'v3.1·b30'],
     ['sync', '云同步', '多设备'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
@@ -22816,7 +22816,7 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
       if(ph) ph.style.paddingBottom=H+'px';
       /* 2) 实测底栏底边到真实可视底部的距离，直接位移补掉 */
       tb.style.transform='none';
-      var visBottom=(vv&&vv.offsetTop?v.offsetTop:0)+vh;
+      var visBottom=(vv&&vv.offsetTop?vv.offsetTop:0)+vh;
       var d=visBottom-tb.getBoundingClientRect().bottom;
       if(Math.abs(d)>1) tb.style.transform='translateY('+d+'px)';
       /* 3) 诊断：左下角浮标（截图可读，验收后去掉） */
@@ -22827,9 +22827,9 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
         var dg=document.getElementById('__diag');
         if(!dg){dg=document.createElement('div');dg.id='__diag';
           dg.style.cssText='position:fixed;left:4px;bottom:1px;z-index:90;font-size:9px;'+
-            'opacity:.34;pointer-events:none;color:#888;font-family:monospace';
+            'opacity:.85;pointer-events:none;color:#e11d48;font-family:monospace;font-weight:700';
           document.body.appendChild(dg);}
-        dg.textContent='余'+gap+'px 视口'+Math.round(vh)+' 栏高'+Math.round(H);
+        dg.textContent='v30 余'+gap+'px 视口'+Math.round(vh);
         /* 版本号旁也挂一份（云同步面板打开时才会有） */
         var el=null;
         var all=[...document.querySelectorAll('*')].filter(function(e){
@@ -22853,6 +22853,35 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   [0,150,400,900,1800].forEach(function(t){setTimeout(fit,t);});
   setInterval(fit,1200);
 })();
+/* ===== V30：强制刷新（清 SW + 缓存后带时间戳重载） ===== */
+(function(){
+  function forceReload(){
+    try{
+      var tip=document.getElementById('frTip');
+      if(tip)tip.textContent='正在清缓存…';
+      var jobs=[];
+      if('serviceWorker' in navigator){
+        jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+          return Promise.all(rs.map(function(r){return r.unregister();}));
+        }).catch(function(){}));
+      }
+      if(window.caches){
+        jobs.push(caches.keys().then(function(ks){
+          return Promise.all(ks.map(function(k){return caches.delete(k);}));
+        }).catch(function(){}));
+      }
+      return Promise.all(jobs).then(function(){
+        location.replace(location.pathname+'?t='+Date.now());
+      });
+    }catch(e){ location.replace(location.pathname+'?t='+Date.now()); }
+  }
+  window.__forceReload=forceReload;
+  document.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest?e.target.closest('#frReload'):null;
+    if(t){e.preventDefault();forceReload();}
+  },true);
+})();
+
 
 </script>
 
