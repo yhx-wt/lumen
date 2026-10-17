@@ -4126,7 +4126,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v26。</span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v27。</span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -22801,34 +22801,33 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   }
 })();
 
-/* V26：底部留白兜底（用 visualViewport 真实可视高度） */
-(function () {
-  function fit() {
-    try {
-      var vv = window.visualViewport;
-      var h = vv && vv.height ? vv.height : innerHeight;
-      var top = vv && vv.offsetTop ? vv.offsetTop : 0;
-      var ph = document.querySelector('.phone');
-      if (ph) { ph.style.height = h + 'px'; ph.style.maxHeight = h + 'px'; }
-      document.body.style.height = h + 'px';
-      var tb = document.querySelector('.tabbar');
-      if (tb) {
-        var gap = (top + h) - tb.getBoundingClientRect().bottom;
-        if (gap > 6) {
-          var cur = parseFloat(getComputedStyle(tb).paddingBottom) || 0;
-          tb.style.paddingBottom = Math.max(2, cur - (gap - 4)) + 'px';
-        }
+/* V27：底栏按钮下方留白兜底（按按钮底边实测） */
+(function(){
+  function fit(){
+    try{
+      var vv=window.visualViewport;
+      var h=vv&&vv.height?vv.height:innerHeight;
+      var top=vv&&vv.offsetTop?vv.offsetTop:0;
+      var ph=document.querySelector('.phone');
+      if(ph){ph.style.height=h+'px';ph.style.maxHeight=h+'px';}
+      document.body.style.height=h+'px';
+      var tb=document.querySelector('.tabbar');
+      if(!tb)return;
+      var btns=[...tb.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().height>0);
+      if(!btns.length)return;
+      var last=Math.max(...btns.map(b=>b.getBoundingClientRect().bottom));
+      var gap=(top+h)-last;                 /* 按钮底边 → 可视底部 */
+      if(gap>8){
+        var cur=parseFloat(getComputedStyle(tb).paddingBottom)||0;
+        tb.style.paddingBottom=Math.max(1,cur-(gap-6))+'px';
       }
-    } catch (e) { }
+    }catch(e){}
   }
-  window.__fitVP = fit;
-  if (window.visualViewport) {
-    visualViewport.addEventListener('resize', fit);
-    visualViewport.addEventListener('scroll', fit);
-  }
-  addEventListener('resize', fit);
-  addEventListener('orientationchange', function () { setTimeout(fit, 300); });
-  [0, 300, 900, 1800].forEach(function (t) { setTimeout(fit, t); });
+  window.__fitVP=fit;
+  if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit);}
+  addEventListener('resize',fit);
+  addEventListener('orientationchange',function(){setTimeout(fit,300);});
+  [0,300,900,1800].forEach(function(t){setTimeout(fit,t);});
 })();
 
 </script>
@@ -22953,41 +22952,15 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 </style>
 
 <style id="qTabletV24">
-/* ===== V26 平板修正 =====
-   思路：底部不留空 → 「今日提醒」卡片照旧撑满，但内容改为垂直居中，
-   上下留白对称；其余卡片温和放大（幅度远小于 V25），吸收掉一部分空白。 */
+/* ===== V27 平板修正：只削「四个按钮下方」的空白 =====
+   根因：底栏 padding-bottom = 6px + 安全区×0.45，iPad 上安全区约 36px
+        → 实际 22px，就是你圈出来的那条。
+   修法：安全区不再叠加，只留 5px。其余任何尺寸一律不动。 */
 
 @media(min-width:760px){
-  /* 1) 底栏贴底 */
-  .tabbar{padding-top:8px!important;padding-bottom:8px!important}
-
-  /* 2) 温和放大（V24 尺寸 → 仅 +20% 左右，不改内部字号） */
-  #p-home .hm{gap:clamp(11px,1.4vh,16px)!important}
-  #p-home .hm-clk{min-height:clamp(132px,14vh,150px)}
-  #p-home .hi-wx{min-height:clamp(104px,10.5vh,126px)}
-  #p-home .hm-tl>button{min-height:clamp(100px,11vh,120px);
-    display:flex;flex-direction:column;justify-content:center}
-  #p-home .hm-tip{min-height:clamp(20px,2.2vh,24px);display:flex;align-items:center}
-
-  /* 3) 「今日提醒」撑满但内容居中 —— 空白上下对称，不再全堆在下面 */
-  #p-home .hm-rm{flex:1 1 auto!important;min-height:0}
-  /* 内容居中用 auto margin（内容超出时自动失效，不会把顶部裁掉） */
-  #p-home .hm-rm #hRm{flex:1 1 auto!important;min-height:0;
-    display:flex!important;flex-direction:column;
-    overflow-y:auto!important;-webkit-overflow-scrolling:touch}
-  #p-home .hm-rm #hRm>*:first-child{margin-top:auto}
-  #p-home .hm-rm #hRm>*:last-child{margin-bottom:auto}
-
-  .page{padding-bottom:0!important}
+  .tabbar{padding-bottom:5px!important;padding-top:9px!important}
   .phone{height:100dvh!important;max-height:100dvh!important;border-radius:0!important;
          border:0!important;box-shadow:none!important}
   body{padding:0!important;overflow:hidden}
 }
-
-/* 可点提示 */
-#clkTap,#tipTap{-webkit-tap-highlight-color:transparent;transition:opacity .15s}
-#clkTap:active,#tipTap:active{opacity:.55}
-#tipTap{text-decoration:underline dotted;
-  text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);
-  text-underline-offset:3px}
 </style>
