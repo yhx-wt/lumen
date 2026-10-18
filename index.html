@@ -2702,13 +2702,17 @@ function drawSchulte() {
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
     '<div class="card"><div class="ch"><h3>成绩</h3>' + (hist.length ? '<span class="sp"><button class="mini dg" id="sClr">清空</button></span>' : '') + '</div>' +
-    '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
+    '<div class="row" style="gap:7px;margin-bottom:6px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
-      return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
+      return '<button class="sbtn" data-sr="' + n + '" style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px;border:1px solid transparent"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></button>';
     }).join('') + '</div>' +
+    '<div class="xs mut2" style="margin-bottom:10px">点任一宫格，看它的成绩排行</div>' +
     (hist.length ? '<div style="max-height:170px;overflow-y:auto" class="scroll">' + hist.slice(0, 12).map(function (h) {
       return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px"><span class="sm">' + h.n + '×' + h.n + ' ' + (h.mode === 'num' ? '数字' : h.mode === 'rev' ? '倒序' : '字母') + ' <span class="mut2 xs">' + fmtMD(ds(new Date(h.at))) + '</span></span><b>' + h.sec + '"' + (h.err ? ' <span class="mut2 xs">错' + h.err + '</span>' : '') + '</b></div>';
     }).join('') + '</div>' : '<div class="empty" style="padding:14px">还没有成绩</div>') + '</div>';
+  $$('#shBody [data-sr]').forEach(function (b) {
+    b.onclick = function () { schulteRank(+b.dataset.sr); };
+  });
   $$('#shBody .seg button').forEach(function (b) {
     b.classList.toggle('on', +b.dataset.n === SB.n);
     b.onclick = function () { SB.n = +b.dataset.n; sbReset(); drawSchulte(); };
@@ -5837,10 +5841,11 @@ function drawSchulte() {
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
     '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩</h3><span class="sp">' + (hist.length ? '<button class="mini" id="sRank">排行 ›</button> <button class="mini dg" id="sClr">清空</button>' : '') + '</span></div>' +
-    '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
+    '<div class="row" style="gap:7px;margin-bottom:6px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
-      return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
+      return '<button class="sbtn" data-sr="' + n + '" style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px;border:1px solid transparent"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></button>';
     }).join('') + '</div>' +
+    '<div class="xs mut2" style="margin-bottom:10px">点任一宫格，看它的成绩排行</div>' +
     '<div class="sbstd">参考（20 岁左右成年人，数字模式）：' + [3, 4, 5, 6].map(function (n) {
       var s = SBSTD[n]; return n + '×' + n + ' 优≤' + s[0] + '" 良≤' + s[1] + '"';
     }).join(' · ') + '。成绩只供自我对比，别太较真。</div></div>' +
@@ -5856,6 +5861,9 @@ function drawSchulte() {
       };
     }), { onDel: 1, empty: '' }) : '<div class="empty" style="padding:14px">还没有成绩<br>点「开始」来一局</div>') + '</div>';
 
+  $$('#shBody [data-sr]').forEach(function (b) {
+    b.onclick = function () { schulteRank(+b.dataset.sr); };
+  });
   $$('#shBody .seg button').forEach(function (b) {
     b.classList.toggle('on', +b.dataset.n === SB.n);
     b.onclick = function () { SB.n = +b.dataset.n; sbReset(); drawSchulte(); };
@@ -5880,8 +5888,11 @@ function drawSchulte() {
   if (cl) cl.onclick = function () {
     confirmBox('清空成绩', '历史记录也会删除', function () { S.game.schulte = {}; S.game.history = []; save(); drawSchulte(); }, '清空');
   };
+  $$('#shBody [data-sr]').forEach(function (b) {
+    b.onclick = function () { schulteRank(+b.dataset.sr); };
+  });
   var rk = $('#sRank');
-  if (rk) rk.onclick = function () { schulteRank(); };
+  if (rk) rk.onclick = function () { schulteRank(SB.n); };
   histBind('#shBody', null, function (idx) {
     S.game.history.splice(+idx, 1);
     save(); drawSchulte(); toast('已删除这条成绩');
@@ -5935,10 +5946,19 @@ function srStatBox(k, v) {
     '<span class="xs mut" style="display:block">' + k + '</span>' +
     '<b style="font-size:var(--f17)">' + v + '</b></span>';
 }
-function schulteRank() {
-  var hist = (S.game.history || []).slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
+function schulteRank(n, mode) {
+  n = num(n, 0) || (SB && SB.n) || 5;
+  mode = mode || 'all';
+  var pool = (S.game.history || []).filter(function (h) {
+    return num(h.n, 5) === n && (mode === 'all' || sbModeOf(h) === mode);
+  });
+  if (!pool.length) {
+    var hasAny = (S.game.history || []).some(function (h) { return num(h.n, 5) === n; });
+    toast(hasAny ? (n + '×' + n + ' 该模式还没有成绩') : (n + '×' + n + ' 还没有成绩'));
+    return;
+  }
+  var hist = pool.slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
   var N = hist.length;
-  if (!N) { toast('还没有成绩'); return; }
   var sum = 0;
   hist.forEach(function (h) { sum += num(h.sec, 0); });
   var avg = sum / N;
@@ -5949,6 +5969,14 @@ function schulteRank() {
   }
   var p5 = pctOf(5), p10 = pctOf(10), p20 = pctOf(20);
   var h = '';
+  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>范围</h3></div>' +
+    '<div class="row" style="gap:6px;margin-bottom:7px" id="srN">' + [3, 4, 5, 6].map(function (x) {
+      return '<button class="mini" data-n="' + x + '"' + (x === n ? ' style="background:color-mix(in srgb,var(--a1) 18%,transparent);border-color:color-mix(in srgb,var(--a1) 46%,transparent);color:var(--tx);font-weight:640"' : '') + '>' + x + '×' + x + '</button>';
+    }).join('') + '</div>' +
+    '<div class="row" style="gap:6px" id="srM">' + [['all', '全部'], ['num', '数字'], ['rev', '倒序'], ['letter', '字母']].map(function (x) {
+      return '<button class="mini" data-m="' + x[0] + '"' + (x[0] === mode ? ' style="background:color-mix(in srgb,var(--a1) 18%,transparent);border-color:color-mix(in srgb,var(--a1) 46%,transparent);color:var(--tx);font-weight:640"' : '') + '>' + x[1] + '</button>';
+    }).join('') + '</div>' +
+    '<div class="xs mut2" style="margin-top:7px">不同宫格难度差很多，分开排名才可比。</div></div>';
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>总览</h3></div>' +
     '<div class="row" style="gap:7px">' +
     srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(1) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(1) + '"') +
@@ -5965,7 +5993,7 @@ function schulteRank() {
     top.map(function (r, i) {
       return '<div class="spread" style="padding:8px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px;gap:8px">' +
         '<span class="sm" style="min-width:0;flex:1"><b style="color:var(--a1);display:inline-block;min-width:24px">' + (i + 1) + '.</b> ' +
-        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) +
+        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + srModeName(r.mode) +
         (num(r.err, 0) ? ' · 错' + num(r.err, 0) + '次' : '') + '</span><br>' +
         '<span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
@@ -5975,11 +6003,17 @@ function schulteRank() {
     hist.map(function (r, i) {
       return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:5px;gap:8px">' +
         '<span class="sm" style="min-width:0;flex:1"><span class="mut2 xs">#' + (i + 1) + '</span> ' +
-        r.n + '×' + r.n + ' ' + srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
+        srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
         '<br><span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
     }).join('') + '</div></div>';
-  openSheet('srank', '成绩排行', h, { back: function () { drawSchulte(); } });
+  openSheet('srank', n + '×' + n + ' 成绩排行', h, { back: function () { drawSchulte(); } });
+  $$('#srN [data-n]').forEach(function (b) {
+    b.onclick = function () { schulteRank(+b.dataset.n, mode); };
+  });
+  $$('#srM [data-m]').forEach(function (b) {
+    b.onclick = function () { schulteRank(n, b.dataset.m); };
+  });
   $$('#shBody [data-srdel]').forEach(function (b) {
     b.onclick = function () {
       var ts = +b.dataset.srdel;
@@ -5996,7 +6030,8 @@ function schulteRank() {
             if (!S.game.schulte[k] || v < S.game.schulte[k]) S.game.schulte[k] = v;
           });
           save(); chimeSoft(); toast('已删除');
-          if (!(S.game.history || []).length) drawSchulte(); else schulteRank();
+          var still = (S.game.history || []).some(function (x) { return num(x.n, 5) === n; });
+          if (!(S.game.history || []).length || !still) drawSchulte(); else schulteRank(n, mode);
         }, '删除');
     };
   });
@@ -11055,12 +11090,12 @@ function noteEdit(id, opts) {
     var big = true;
     var adv = ' neadv';
     var h = '';
-    h += '<div class="segline sm' + adv + '" id="neType" style="margin-bottom:8px">' +
+    h += '<div class="nehead" id="neHead">' + '<div class="segline sm' + adv + '" id="neType" style="margin-bottom:8px">' +
       '<button data-v="text"' + (isList ? '' : ' class="on"') + '>文本</button>' +
       '<button data-v="list"' + (isList ? ' class="on"' : '') + '>清单</button>' +
       (canVoice ? '<button data-v="voice" id="neMic">🎤 语音</button>' : '') + '</div>' +
     '<input class="inp" id="neTitle" placeholder="标题（可空，默认取首行）" value="' + esc(cur.title || '') +
-    '" style="height:38px;font-size:var(--f15);font-weight:660;margin-bottom:8px">';
+    '" style="height:38px;font-size:var(--f15);font-weight:660;margin-bottom:8px">' + '</div>';
     /* 新建且为空：模板 */
     var isEmpty = isList ? !(cur.items || []).length : !(cur.text || '').trim();
     if (isEmpty) {
@@ -13012,7 +13047,7 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.1·b37';
+var APP_VER = '3.1·b38';
 
 /* ========== 全局工具：找真正的滚动容器 ==========
    #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
@@ -23306,11 +23341,12 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 .nefull #neT{min-height:44vh!important;height:auto!important}
 .sheet-b.nedit>.nelist{max-height:52vh!important;overflow-y:auto!important}
 /* 顶部两行常驻：滚多远都能切类型、改标题 */
-.sheet-b.nedit>.segline,.sheet-b.nedit>#neTitle{
+.sheet-b.nedit>.nehead{
   position:sticky!important;top:0!important;z-index:30!important;
-  background:var(--bg)!important}
-.sheet-b.nedit>.segline{top:0!important;padding-top:2px!important;padding-bottom:4px!important}
-.sheet-b.nedit>#neTitle{top:44px!important}
+  background:var(--bg)!important;padding-top:2px!important;padding-bottom:2px!important;
+  box-shadow:0 6px 10px -8px rgba(0,0,0,.55)!important}
+
+
 
 /* --- 4. 便签查看页：查找栏（含上/下一处）随内容滚走，必须拉到顶才点得到 --- */
 #nvFind{position:sticky!important;top:0!important;z-index:30!important;
@@ -23374,12 +23410,18 @@ html[data-theme="dusk"]{--tx3:#4a5568}
       if (parseFloat(cs.opacity) < 0.7) continue;           /* 半透明＝未启用，不管 */
       var c = firstColor(cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor);
       if (!c) continue;
+      /* 一律保持白色图标：改成深色会破坏整套图标的设计感（用户明确否决）。
+         底色过亮时靠更强的描边保住轮廓，不动 color。 */
       var L = lum(c[0], c[1], c[2]);
-      var want = L > 0.26 ? 'dark' : 'light';
+      var want = L > 0.26 ? 'stroke' : 'plain';
       if (sv.__icfx === want) continue;
       sv.__icfx = want;
-      if (want === 'dark') { sv.style.color = '#141a2e'; sv.style.filter = 'none'; }
-      else { sv.style.color = ''; sv.style.filter = ''; }
+      sv.style.color = '';
+      if (want === 'stroke') {
+        sv.style.filter = 'drop-shadow(0 0 1.2px rgba(0,0,0,.95)) drop-shadow(0 1px 1.8px rgba(0,0,0,.6))';
+      } else {
+        sv.style.filter = '';
+      }
     }
   }
   var t = null;
