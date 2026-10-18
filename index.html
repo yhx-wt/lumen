@@ -18,7 +18,7 @@
    --wx-sun:#F5A623; --wx-moon:#C3D0E8; --wx-bolt:#F7C948; --wx-rain:#4FA3E3; --wx-snow:#8FD0F5;
    --card:#1a2138; --bg:#0B0C11; --surf:#141a2e; --surf2:#141a2e; --surf3:#141a2e;
   --line:rgba(255,255,255,.34); --line-s:rgba(255,255,255,.58);
-  --tx:#F4F6FA; --tx2:#BCC1D2; --tx3:#9298AB;
+  --tx:#F4F6FA; --tx2:#BCC1D2; --tx3:#9298AB; --mut:#9298AB;
   --a1:#8B6BFF; --a2:#33E8C8;
   --ok:#4ADE80; --warn:#FBBF24; --danger:#FB6B81; --info:#60A5FA;
   --solid:#141a2e;
@@ -33,7 +33,7 @@ html[data-theme="light"]{
    --wx-sun:#E89400; --wx-moon:#8494B0; --wx-bolt:#D98E00; --wx-rain:#2F86D8; --wx-snow:#4FA8DE;
    --card:#ffffff; --bg:#f4f6fa; --surf:#f4f6fa; --surf2:#f4f6fa; --surf3:#dde3ec;
   --line:rgba(14,18,32,.42); --line-s:rgba(14,18,32,.66);
-  --tx:#0b0c11; --tx2:#475569; --tx3:#64748b;
+  --tx:#0b0c11; --tx2:#475569; --tx3:#5a6478; --mut:#5a6478;
   --a1:#6D3EF0; --a2:#0E9384;
   --ok:#12924F; --warn:#B87400; --danger:#D63A56; --info:#1D6FD8;
   --solid:#f4f6fa;
@@ -45,7 +45,7 @@ html[data-theme="dusk"]{
    --wx-sun:#D98700; --wx-moon:#7A8AA6; --wx-bolt:#C98400; --wx-rain:#2C7FCB; --wx-snow:#4AA2D8;
    --card:#fdfbf7; --bg:#DDE3EC; --surf:#f4f6fa; --surf2:#f4f6fa; --surf3:#dde3ec;
   --line:rgba(28,44,72,.30); --line-s:rgba(28,44,72,.52);
-  --tx:#141a2e; --tx2:#475569; --tx3:#64748b;
+  --tx:#141a2e; --tx2:#475569; --tx3:#556075; --mut:#5a6478;
   --a1:#1d6fd8; --a2:#0e9384;
   --ok:#12924f; --warn:#9A6200; --danger:#C63A44; --info:#2569b8;
   --solid:#f4f6fa;
@@ -999,6 +999,7 @@ var DEF = {
     theme: 'dark', accent: 'violet', fs: 'm', hour24: false, sound: true, weekStart: 1,
     focus: 25, short: 5, long: 15, rounds: 4, autoNext: false, noise: 'off', noiseVol: .35,
     name: '', avatar: '🌗', motto: '把今天过好，明天自然会来', tipCustom: '',
+    noteOnHome: false,
     city: { name: '西安', lat: 34.3416, lon: 108.9398, admin: '陕西' }, cities: [],
     rainAlert: 30, budget: 0, waterGoal: 2000, waterCup: 250,
     apps: ['focus', 'task', 'money', 'journal', 'habit', 'countdown', 'weather', 'note', 'schulte', 'breath', 'tools', 'achieve', 'water', 'sleep', 'study', 'remind'],
@@ -1041,7 +1042,7 @@ var S;
   function migrate(o) {
     try {
       var st = o.settings || {};
-      ['theme', 'accent', 'fs', 'hour24', 'sound', 'focus', 'short', 'long', 'rounds', 'autoNext', 'noise', 'name', 'budget'].forEach(function (k) { if (st[k] != null) S.settings[k] = st[k]; });
+      ['theme', 'accent', 'fs', 'hour24', 'sound', 'focus', 'short', 'long', 'rounds', 'autoNext', 'noise', 'name', 'budget', 'noteOnHome'].forEach(function (k) { if (st[k] != null) S.settings[k] = st[k]; });
       if (st.city) S.settings.city = st.city;
       if (st.cities) S.settings.cities = st.cities;
       S.habits = (o.habits || []).map(function (h) { return { id: h.id, name: h.name, icon: h.icon || '✓', createdAt: h.at }; });
@@ -5835,7 +5836,7 @@ function drawSchulte() {
     '<div class="tbar" style="margin-top:10px"><i id="sBar" style="width:0"></i></div>' +
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
-    '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩</h3>' + (hist.length ? '<span class="sp"><button class="mini dg" id="sClr">清空</button></span>' : '') + '</div>' +
+    '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩</h3><span class="sp">' + (hist.length ? '<button class="mini" id="sRank">排行 ›</button> <button class="mini dg" id="sClr">清空</button>' : '') + '</span></div>' +
     '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
       return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
@@ -5879,6 +5880,8 @@ function drawSchulte() {
   if (cl) cl.onclick = function () {
     confirmBox('清空成绩', '历史记录也会删除', function () { S.game.schulte = {}; S.game.history = []; save(); drawSchulte(); }, '清空');
   };
+  var rk = $('#sRank');
+  if (rk) rk.onclick = function () { schulteRank(); };
   histBind('#shBody', null, function (idx) {
     S.game.history.splice(+idx, 1);
     save(); drawSchulte(); toast('已删除这条成绩');
@@ -5918,6 +5921,87 @@ function sbFinish() {
   if (isNew) confetti();
   drawSchulteHistOnly();
 }
+
+/* ---------- 舒尔特：成绩排行（总览 / 分位 / 前20 / 全部历史，可删单条） ---------- */
+function srModeName(m) { return m === 'num' ? '数字' : m === 'rev' ? '倒序' : '字母'; }
+function srTimeOf(ts) {
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  var p = function (v) { return (v < 10 ? '0' : '') + v; };
+  return String(d.getFullYear()).slice(2) + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function srStatBox(k, v) {
+  return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:12px;padding:9px 3px">' +
+    '<span class="xs mut" style="display:block">' + k + '</span>' +
+    '<b style="font-size:var(--f17)">' + v + '</b></span>';
+}
+function schulteRank() {
+  var hist = (S.game.history || []).slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
+  var N = hist.length;
+  if (!N) { toast('还没有成绩'); return; }
+  var sum = 0;
+  hist.forEach(function (h) { sum += num(h.sec, 0); });
+  var avg = sum / N;
+  function pctOf(p) {
+    var k = Math.max(1, Math.ceil(N * p / 100));
+    if (k > N) k = N;
+    return { rank: k, rec: hist[k - 1] };
+  }
+  var p5 = pctOf(5), p10 = pctOf(10), p20 = pctOf(20);
+  var h = '';
+  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>总览</h3></div>' +
+    '<div class="row" style="gap:7px">' +
+    srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(1) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(1) + '"') +
+    '</div></div>';
+  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>分位线</h3></div>' +
+    '<div class="row" style="gap:7px">' +
+    srStatBox('前 5%', '第 ' + p5.rank + ' 名<br>' + num(p5.rec.sec, 0).toFixed(1) + '"') +
+    srStatBox('前 10%', '第 ' + p10.rank + ' 名<br>' + num(p10.rec.sec, 0).toFixed(1) + '"') +
+    srStatBox('前 20%', '第 ' + p20.rank + ' 名<br>' + num(p20.rec.sec, 0).toFixed(1) + '"') +
+    '</div>' +
+    '<div class="xs mut2" style="margin-top:7px">分位线＝排在这个百分比最末位的成绩，例如前 5% 表示你最快的一批成绩里最慢的那次。</div></div>';
+  var top = hist.slice(0, 20);
+  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>前 ' + top.length + ' 名</h3></div>' +
+    top.map(function (r, i) {
+      return '<div class="spread" style="padding:8px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px;gap:8px">' +
+        '<span class="sm" style="min-width:0;flex:1"><b style="color:var(--a1);display:inline-block;min-width:24px">' + (i + 1) + '.</b> ' +
+        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) +
+        (num(r.err, 0) ? ' · 错' + num(r.err, 0) + '次' : '') + '</span><br>' +
+        '<span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
+        '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
+    }).join('') + '</div>';
+  h += '<div class="card"><div class="ch"><h3>全部记录（' + N + '）</h3></div>' +
+    '<div style="max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch">' +
+    hist.map(function (r, i) {
+      return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:5px;gap:8px">' +
+        '<span class="sm" style="min-width:0;flex:1"><span class="mut2 xs">#' + (i + 1) + '</span> ' +
+        r.n + '×' + r.n + ' ' + srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
+        '<br><span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
+        '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
+    }).join('') + '</div></div>';
+  openSheet('srank', '成绩排行', h, { back: function () { drawSchulte(); } });
+  $$('#shBody [data-srdel]').forEach(function (b) {
+    b.onclick = function () {
+      var ts = +b.dataset.srdel;
+      var rec = (S.game.history || []).filter(function (x) { return x.at === ts; })[0];
+      if (!rec) return;
+      confirmBox('删除这条记录',
+        rec.n + '×' + rec.n + ' ' + srModeName(rec.mode) + '　' + num(rec.sec, 0).toFixed(1) + '"\n' + srTimeOf(ts) + '\n删除后无法恢复。',
+        function () {
+          S.game.history = (S.game.history || []).filter(function (x) { return x.at !== ts; });
+          S.game.schulte = {};
+          (S.game.history || []).forEach(function (x) {
+            var k = x.n + (x.mode === 'num' ? '' : x.mode);
+            var v = num(x.sec, 0);
+            if (!S.game.schulte[k] || v < S.game.schulte[k]) S.game.schulte[k] = v;
+          });
+          save(); chimeSoft(); toast('已删除');
+          if (!(S.game.history || []).length) drawSchulte(); else schulteRank();
+        }, '删除');
+    };
+  });
+}
+
 function drawSchulteHistOnly() {
   var host = $('#shBody .card:last-child'); if (!host) return;
   var hist = S.game.history || [];
@@ -7034,6 +7118,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
+    (S.settings.noteOnHome ? '<button class="iconbtn" id="mNoteBtn" title="便签"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9l5 5v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v6h6"/><path d="M8.5 13.5h7M8.5 17h4.5"/></svg></button>' : '') +
     '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" style="margin-bottom:7px;padding:10px">' +
@@ -7081,6 +7166,7 @@ function renderMine() {
   $('#mEdit').onclick = profileDlg;
   $('#mAch').onclick = appAchieve;
   $('#mSetBtn').onclick = settingsSheet;
+  var _mnb = $('#mNoteBtn'); if (_mnb) _mnb.onclick = function () { notesSheet(); };
   $('#exSet').onclick = exchangeDlg;
   $('#exGo').onclick = doExchange;
   $('#qsSave').onclick = quickSpend;
@@ -7980,6 +8066,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l-.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
+    (S.settings.noteOnHome ? '<button class="iconbtn" id="mNoteBtn" title="便签"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9l5 5v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v6h6"/><path d="M8.5 13.5h7M8.5 17h4.5"/></svg></button>' : '') +
     '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" id="mProf" style="margin-bottom:8px;cursor:pointer">' +
@@ -8029,6 +8116,7 @@ function renderMine() {
   $('#mProf').onclick = profileDlg;
   $('#mAch').onclick = appAchieve;
   $('#mSetBtn').onclick = settingsSheet;
+  var _mnb = $('#mNoteBtn'); if (_mnb) _mnb.onclick = function () { notesSheet(); };
   $('#exSet').onclick = exchangeDlg;
   $('#qsSave').onclick = quickSpend;
   $('#qaAdd').onclick = quickExtraAch;
@@ -8530,6 +8618,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l-.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
+    (S.settings.noteOnHome ? '<button class="iconbtn" id="mNoteBtn" title="便签"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9l5 5v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v6h6"/><path d="M8.5 13.5h7M8.5 17h4.5"/></svg></button>' : '') +
     '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile" id="mProf" style="margin-bottom:9px;cursor:pointer">' +
@@ -8584,6 +8673,7 @@ function renderMine() {
   $('#mProf').onclick = profileDlg;
   $('#mAch').onclick = appAchieve;
   $('#mSetBtn').onclick = settingsSheet;
+  var _mnb = $('#mNoteBtn'); if (_mnb) _mnb.onclick = function () { notesSheet(); };
   $('#qsSave').onclick = quickSpend;
   $('#qaAdd').onclick = quickExtraAch;
   $('#qsHist').onclick = spendHistorySheet;
@@ -10468,7 +10558,7 @@ function homeOutfitHtml() {
     if (h1 && !h1.__lp) {
       h1.__lp = 1;
       h1.setAttribute('data-lp', '1');
-      bindLongPress(h1, notesSheet, 600);
+      bindLongPress(h1, notesSheet, 420);
     }
     /* 入口二：底部导航栏的「我的」图标（单击仍是切页，长按 2 秒进便签） */
     var tb = document.querySelector('#tabbar button[data-t="mine"]');
@@ -10479,7 +10569,7 @@ function homeOutfitHtml() {
         tb.__suppress = 1;
         setTimeout(function () { tb.__suppress = 0; }, 350);
         notesSheet();
-      }, 600);
+      }, 420);
     }
   };
 })();
@@ -10673,7 +10763,7 @@ function bindLongPress(el, fn, ms) {
 }
 function bindNoteEntry() {
   var h1 = document.querySelector('#p-mine .phead h1');
-  if (h1 && !h1.__lp) { h1.__lp = 1; bindLongPress(h1, notesSheet, 600); }
+  if (h1 && !h1.__lp) { h1.__lp = 1; bindLongPress(h1, notesSheet, 420); }
   var tb = document.querySelector('#tabbar button[data-t="mine"]');
   if (tb && !tb.__lp) {
     tb.__lp = 1;
@@ -12531,7 +12621,12 @@ function noteSettings() {
         '<div class="fld"><label>默认排序</label><div class="segline sm" id="stSort">' +
         [['manual', '手动'], ['up', '最近修改'], ['created', '创建时间'], ['remind', '提醒'], ['title', '标题']].map(function (x) {
           return '<button data-v="' + x[0] + '"' + (ns('sort', 'manual') === x[0] ? ' class="on"' : '') + '>' + x[1] + '</button>';
-        }).join('') + '</div></div></div>';
+        }).join('') + '</div></div>' +
+        '<div class="spread" style="padding:10px 0;border-top:1px dashed var(--line)">' +
+        '<span><b style="font-size:var(--f15)">在「我的」页显示便签</b>' +
+        '<small class="mut" style="display:block;font-size:var(--f11)">开启后，「我的」右上角齿轮旁多一个便签按钮，一点就开</small></span>' +
+        '<button class="switch' + (!!S.settings.noteOnHome ? ' on' : '') + '" id="stHome"></button></div>' +
+        '</div>';
       h += '<div class="card" style="margin-bottom:9px"><div class="ch"><h3>提醒</h3></div>' +
         '<button class="btn wide" id="stNotify" style="margin-bottom:6px">🔔 ' +
         (('Notification' in window) ? (Notification.permission === 'granted' ? '通知已开启 ✓' : Notification.permission === 'denied' ? '通知被拒绝（用站内提醒）' : '开启系统通知') : '此浏览器不支持通知') +
@@ -12561,6 +12656,14 @@ function noteSettings() {
       $$('#stKeep button').forEach(function (b) {
         b.onclick = function () { S.settings.noteKeep = +b.dataset.v; save(); $$('#stKeep button').forEach(function (x) { x.classList.toggle('on', +x.dataset.v === +b.dataset.v); }); toast('已设置'); };
       });
+      var hb = $('#stHome');
+      if (hb) hb.onclick = function () {
+        S.settings.noteOnHome = !S.settings.noteOnHome;
+        save(); chimeSoft();
+        hb.classList.toggle('on', !!S.settings.noteOnHome);
+        toast(S.settings.noteOnHome ? '已显示在「我的」页' : '已隐藏入口');
+        try { renderMine(); } catch (e) { }
+      };
       var nb = $('#stNotify');
       if (nb) nb.onclick = function () {
         try {
@@ -12909,7 +13012,7 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.1·b33';
+var APP_VER = '3.1·b37';
 
 /* ========== 全局工具：找真正的滚动容器 ==========
    #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
@@ -20725,6 +20828,7 @@ function renderMine() {
     '<div class="phead" style="padding:12px 0 6px"><h1>我的</h1>' +
     '<span class="sp">' +
     '<button class="iconbtn" id="mSetBtn" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.2a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.6 1v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l-.1-.1a1.5 1.5 0 0 0-1-2.6h-.2a1.9 1.9 0 1 1 0-3.8h.1a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 2.6-1V3.9a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.6 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0 1 2.6h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.5 1.5 0 0 0-1.4.9z"/></svg></button>' +
+    (S.settings.noteOnHome ? '<button class="iconbtn" id="mNoteBtn" title="便签"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9l5 5v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M14 3.5v6h6"/><path d="M8.5 13.5h7M8.5 17h4.5"/></svg></button>' : '') +
     '<button class="mini" id="mAch">积分</button><button class="mini" id="mEdit">资料</button></span></div>' +
 
     '<div class="card tight profile mineprof" id="mProf" style="margin-bottom:9px;cursor:pointer">' +
@@ -20782,6 +20886,7 @@ function renderMine() {
   $('#mProf').onclick = profileDlg;
   $('#mAch').onclick = appAchieve;
   $('#mSetBtn').onclick = settingsSheet;
+  var _mnb = $('#mNoteBtn'); if (_mnb) _mnb.onclick = function () { notesSheet(); };
   $('#qsSave').onclick = quickSpend;
   $('#qaAdd').onclick = quickExtraAch;
   $('#qsHist').onclick = spendHistorySheet;
@@ -22902,6 +23007,61 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 }
 </style>
 
+
+<style id="qV37Fix">
+/* ============ V37 视觉统一修复（全主题扫描后） ============ */
+/* 1. 白字压强调色实底：深色主题 --a1=#8B6BFF 偏亮，白字对比仅 3.71（AA 需 4.5）。
+      --a1f 由脚本按亮度自动加深到 ≥4.6:1；浅色/柔和主题本就达标，保持原色。 */
+.dsegbar button.on,.nfilters button.on,.hc.on,.hf.on,.dtgrid .dtd.on,
+.htab.on,.cd2.on,.mini.pr,.seg button.on{
+  background:var(--a1f,var(--a1))!important;border-color:var(--a1f,var(--a1))!important;
+  color:#fff!important}
+/* 2. 日期胶囊：浅色下 --a2 压在同色 16% 底上仅 3.51 */
+.dt{color:color-mix(in srgb,var(--a2) 74%,var(--tx))!important}
+/* 3. 状态标签「连续 N 天」：绿色 --ok 压同色 16% 底上仅 4.00 */
+.tag.ok{color:color-mix(in srgb,var(--ok) 76%,var(--tx))!important}
+/* 4. 喝水分类按钮：未选中时边框全透明，深色下与卡片几乎同色、看不出边界 */
+.catbtn:not(.on){border-color:color-mix(in srgb,var(--line) 62%,transparent)!important}
+/* 5. 数据页单位（分/次/元）：选中行是淡绿底，绿字压上去只有 3.89。
+      用主文字色去混，浅色/柔和下自动变深，深色下自动变亮。 */
+.drow.on em,.drow.on .dnum{color:color-mix(in srgb,currentColor 68%,var(--tx))!important}
+.dnum em,.dh2v em{opacity:1!important}
+</style>
+
+<script>
+/* ===== V37：强调色实底自动加深（保证白字 ≥4.6:1） ===== */
+(function () {
+  function parse(v) {
+    v = String(v || '').trim();
+    var m = v.match(/^#([0-9a-f]{6})$/i);
+    if (m) return [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16)];
+    m = v.match(/^#([0-9a-f]{3})$/i);
+    if (m) return [parseInt(m[1][0] + m[1][0], 16), parseInt(m[1][1] + m[1][1], 16), parseInt(m[1][2] + m[1][2], 16)];
+    m = v.match(/rgba?\(([^)]+)\)/);
+    if (m) { var q = m[1].split(',').map(parseFloat); if (q.length >= 3) return [q[0], q[1], q[2]]; }
+    return null;
+  }
+  function lum(r, g, b) {
+    var f = function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  function apply() {
+    try {
+      var el = document.documentElement;
+      var c = parse(getComputedStyle(el).getPropertyValue('--a1'));
+      if (!c) return;
+      var r = c[0], g = c[1], b = c[2], n = 0;
+      /* 白字对比 = 1.05/(L+0.05)，目标 ≥4.6 */
+      while (1.05 / (lum(r, g, b) + 0.05) < 4.6 && n < 60) { r *= 0.97; g *= 0.97; b *= 0.97; n++; }
+      var v = 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+      if (el.style.getPropertyValue('--a1f') !== v) el.style.setProperty('--a1f', v);
+    } catch (e) { }
+  }
+  apply();
+  try { new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] }); } catch (e) { }
+  window.addEventListener('load', apply);
+})();
+</script>
 </body>
 </html>
 <script>
@@ -22940,30 +23100,6 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
       var visBottom=(vv&&vv.offsetTop?vv.offsetTop:0)+vh;
       var d=visBottom-tb.getBoundingClientRect().bottom;
       if(Math.abs(d)>1) tb.style.transform='translateY('+d+'px)';
-      /* 3) 诊断：左下角浮标（截图可读，验收后去掉） */
-      try{
-        var btn=tb.querySelectorAll('button');
-        var last=0;btn.forEach(function(b){var r=b.getBoundingClientRect();if(r.height)last=Math.max(last,r.bottom);});
-        var gap=Math.round(visBottom-last);
-        var dg=document.getElementById('__diag');
-        if(!dg){dg=document.createElement('div');dg.id='__diag';
-          dg.style.cssText='position:fixed;left:4px;bottom:1px;z-index:90;font-size:11px;'+
-            'opacity:.9;pointer-events:none;color:#e11d48;font-family:monospace;font-weight:700';
-          document.body.appendChild(dg);}
-        var SA=(navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);var SH=Math.round(Math.max(screen.height||0,screen.width||0));var scrGap=Math.round(SH-vh)+gap;dg.textContent='v31 屏余'+scrGap+'pt 视口'+Math.round(vh)+'/屏'+SH+(SA?' SA:是':' SA:否(浏览器内)');
-        /* 版本号旁也挂一份（云同步面板打开时才会有） */
-        var el=null;
-        var all=[...document.querySelectorAll('*')].filter(function(e){
-          if(e.children.length)return false;
-          var t=e.tagName;if(t==='SCRIPT'||t==='STYLE')return false;
-          return /当前版本\s*v\d+/.test(e.textContent||'');});
-        el=all.length?all[all.length-1]:null;
-        if(el){
-          el.setAttribute('data-diag','余'+gap+'px');
-          if(!/\s·\s*余/.test(el.textContent)) el.textContent=el.textContent.replace(/\s+$/,'')+' · 余'+gap+'px';
-          else el.textContent=el.textContent.replace(/\s·\s*余\d+px/,' · 余'+gap+'px');
-        }
-      }catch(e){}
     }catch(e){}
   }
   window.__fitVP=fit;
@@ -23141,3 +23277,118 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
   body{padding:0!important;margin:0!important;overflow:hidden}
 }
 </style>
+
+<style id="qV35Fix">
+/* ===================== V35 视觉 / 可用性统一修复 ===================== */
+
+/* --- 1. 分段选择器：浅色/深色下 .on 背景与容器同色，导致"连成一体" --- */
+.seg button.on{
+  background:color-mix(in srgb,var(--a1) 18%,var(--card))!important;
+  border:1px solid var(--a1)!important;
+  color:var(--tx)!important;
+  font-weight:700!important;
+  box-shadow:0 2px 7px -3px rgba(0,0,0,.30)!important;
+}
+.seg button{border:1px solid transparent!important}
+
+/* --- 2. 彩色加号按钮：svg 被 .sqbtn svg{color:var(--tx2)} 强制成深灰，紫底上看不清 --- */
+#qaAdd svg,#axAdd svg,.sqbtn[style*="--ach"] svg{color:#fff!important;fill:none!important}
+#qaAdd,#axAdd{position:relative;z-index:2}
+
+/* --- 3. 便签编辑页：正文区 absolute 填满，把类型切换/标题/模板整块盖住，点不到 ---
+       改为正常文档流可滚动，所有控件都能到达 --- */
+.sheet-b.nedit{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom))!important}
+.sheet-b.nedit>.nefull,.sheet-b.nedit>.nelist{
+  position:relative!important;left:auto!important;right:auto!important;
+  top:auto!important;bottom:auto!important;
+  display:flex!important;flex-direction:column!important}
+.nefull #neT{min-height:44vh!important;height:auto!important}
+.sheet-b.nedit>.nelist{max-height:52vh!important;overflow-y:auto!important}
+/* 顶部两行常驻：滚多远都能切类型、改标题 */
+.sheet-b.nedit>.segline,.sheet-b.nedit>#neTitle{
+  position:sticky!important;top:0!important;z-index:30!important;
+  background:var(--bg)!important}
+.sheet-b.nedit>.segline{top:0!important;padding-top:2px!important;padding-bottom:4px!important}
+.sheet-b.nedit>#neTitle{top:44px!important}
+
+/* --- 4. 便签查看页：查找栏（含上/下一处）随内容滚走，必须拉到顶才点得到 --- */
+#nvFind{position:sticky!important;top:0!important;z-index:30!important;
+  background:var(--bg)!important;padding:6px 0 8px!important;
+  box-shadow:0 6px 10px -8px rgba(0,0,0,.5)!important}
+
+/* --- 5. 语录：--mut 未定义时回落成深色的 #9298ab，浅色下对比仅 2.88 --- */
+#p-mine .mmotto{color:var(--mut,var(--tx3))!important;opacity:1!important}
+/* --- 6. 次要文字统一提到 WCAG AA --- */
+.xs.mut2,.sm.mut2,.mut2{color:var(--tx3)!important}
+</style>
+
+
+<style id="qV36Fix">
+/* ===================== V36 视觉统一修复 ===================== */
+
+/* --- 1. 应用图标：白色图标压在亮色块（黄/绿/粉/浅蓝）上，对比仅 1.6~2.9，几乎看不见。
+        给图标加深色描边轮廓，保留白色图标的设计感，但在任何底色上都能辨形。 --- */
+.app .ic svg,.dapp svg,.appcard .ic svg,.qk .ic svg{
+  filter:drop-shadow(0 0 .7px rgba(0,0,0,.9)) drop-shadow(0 1px 1.4px rgba(0,0,0,.5))!important;
+}
+
+/* --- 2. 分段选择器：未选中项边框透明，浅色下四个格子连成一片，看不出边界。
+        给未选中项加淡边框；选中项保持强调色边框（.on 优先级更高）。 --- */
+.seg button:not(.on){border:1px solid color-mix(in srgb,var(--tx3) 34%,transparent)!important}
+
+/* --- 3. 浅色下支出/危险色、次要文字在灰底上略低于 AA，统一加深一档 --- */
+html[data-theme="light"]{--danger:#C42B47;--tx3:#4d586b}
+html[data-theme="dusk"]{--tx3:#4a5568}
+
+/* --- 4. 选中态文字（如数据页 30 天）：强调色底上用主文字色，保证可读 --- */
+.seg button.on{color:var(--tx)!important}
+</style>
+
+<script>
+/* ===== V36：彩色块上的图标自动取色 =====
+   应用图标是白色 svg 压在彩色块上。深色块（深紫、石板灰）没问题，
+   但亮色块（黄 #FBBF24、绿 #4ADE80、粉 #FF62AD、浅蓝 #38BDF8）上对比只有 1.6~2.9，
+   浅色主题下几乎看不见。这里按底色亮度自动切换：亮底用深色图标，暗底保持白色。 */
+(function () {
+  function lum(r, g, b) {
+    var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  function firstColor(s) {
+    s = String(s || '');
+    var m = s.match(/rgba?\(([^)]+)\)/);
+    if (m) { var p = m[1].split(',').map(parseFloat); if (p.length >= 3 && (p.length < 4 || p[3] > 0.5)) return [p[0], p[1], p[2]]; }
+    m = s.match(/#([0-9a-fA-F]{6})/);
+    if (m) { var h = m[1]; return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+    m = s.match(/#([0-9a-fA-F]{3})\b/);
+    if (m) { var q = m[1]; return [parseInt(q[0] + q[0], 16), parseInt(q[1] + q[1], 16), parseInt(q[2] + q[2], 16)]; }
+    return null;
+  }
+  function fix() {
+    var els = document.querySelectorAll('.ic > svg, .dapp > svg, .appcard .ic > svg, .qk .ic > svg');
+    for (var i = 0; i < els.length; i++) {
+      var sv = els[i], host = sv.parentElement;
+      if (!host) continue;
+      var cs = getComputedStyle(host);
+      if (parseFloat(cs.opacity) < 0.7) continue;           /* 半透明＝未启用，不管 */
+      var c = firstColor(cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor);
+      if (!c) continue;
+      var L = lum(c[0], c[1], c[2]);
+      var want = L > 0.26 ? 'dark' : 'light';
+      if (sv.__icfx === want) continue;
+      sv.__icfx = want;
+      if (want === 'dark') { sv.style.color = '#141a2e'; sv.style.filter = 'none'; }
+      else { sv.style.color = ''; sv.style.filter = ''; }
+    }
+  }
+  var t = null;
+  function kick() { if (t) clearTimeout(t); t = setTimeout(fix, 60); }
+  if (window.MutationObserver) {
+    try { new MutationObserver(kick).observe(document.body, { childList: true, subtree: true }); } catch (e) { }
+  }
+  window.addEventListener('load', function () { fix(); setTimeout(fix, 400); });
+  if (document.readyState !== 'loading') { fix(); setTimeout(fix, 400); }
+  setInterval(fix, 1500);
+})();
+</script>
