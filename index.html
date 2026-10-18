@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="晨昏 LUMEN">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0B0C11">
 <meta name="color-scheme" content="dark light">
 <title>晨昏 LUMEN</title>
@@ -3615,7 +3620,7 @@ function renderMine() {
     ['task', '任务', '优先·积分'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设置'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '提示音开' : '提示音关'], ['help', '快捷键', '键盘操作'],
-    ['info', '关于', 'v3.1·b30'], ['sync', '云同步', '多设备'],
+    ['info', '关于', 'v' + APP_VER], ['sync', '云同步', '多设备'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
   $('#p-mine').innerHTML =
@@ -4126,7 +4131,7 @@ function sySetup() {
         '<div class="xs mut2" style="margin-top:5px;line-height:1.6">这栏只是写给自己看的备忘，<b>不参与加密、不上传</b>。密码仍是上面那一栏。</div>' +
         '</div></div>' +
         '<div style="margin-top:12px"><button class="btn wide primary" id="syGo">开启同步</button></div>' +
-        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v30。<button class="mini" id="frReload" style="margin-left:6px;vertical-align:middle">强制刷新</button><span id="frTip" class="xs" style="margin-left:6px"></span></span></div>';
+        '<div class="hint" style="margin-top:12px;line-height:1.8">两台设备填<b>同一个地址、同一个账号、同一个密码</b>，即可自动同步。<br>密码只在<b>本机</b>用于加密，不会上传；忘记密码 = 数据永久无法解开，请务必记牢。<br><span class="mut">开启成功后，才会出现「省流量模式」等开关。当前版本 v' + APP_VER + ' 。<button class="mini" id="frReload" style="margin-left:6px;vertical-align:middle">强制刷新</button><span id="frTip" class="xs" style="margin-left:6px"></span></span></div>';
       $('#syGo').onclick = function () {
         var u = ($('#syU').value || '').trim().replace(/\/+$/, ''), a = ($('#syA').value || '').trim(), p = $('#syP').value || '';
         if (!/^https?:\/\/.+/.test(u)) { toast('地址要以 http(s):// 开头', 'err'); return; }
@@ -6077,7 +6082,7 @@ function renderMine() {
     ['task', '任务', '排序'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '开' : '关'], ['help', '快捷键', '键盘'],
-    ['info', '关于', 'v3.1·b30'], ['exchange', '兑换', '每' + r1(num(st.exRate, 10)) + '分'],
+    ['info', '关于', 'v' + APP_VER], ['exchange', '兑换', '每' + r1(num(st.exRate, 10)) + '分'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
   $('#p-mine').innerHTML =
@@ -7092,7 +7097,7 @@ function settingsSheet() {
     ['task', '任务', '排序'], ['weather', '天气', esc(st.city.name)],
     ['money', '预算', st.budget ? '¥' + money(st.budget) : '未设'], ['data', '备份', (size / 1024).toFixed(0) + 'KB'],
     ['bell', '提醒', st.sound ? '开' : '关'], ['dots', '图标红点', st.dots ? '开' : '关'],
-    ['help', '快捷键', '键盘'], ['sleep', '睡眠', '评分规则'], ['info', '关于', 'v3.1·b30'],
+    ['help', '快捷键', '键盘'], ['sleep', '睡眠', '评分规则'], ['info', '关于', 'v' + APP_VER],
     ['sync', '云同步', '多设备'],
     ['wx', '微信提醒', (function () { try { return syLoad().wx ? '已开启' : '未开启'; } catch (e) { return '未开启'; } })()]
   ];
@@ -10924,7 +10929,7 @@ function noteEdit(id, opts) {
   if (!n) n = { id: uid(), type: 'text', text: '', items: [], imgs: [], tags: [], color: '', pin: 0, lock: 0, arch: 0, del: 0, at: Date.now(), up: Date.now() };
   noteFix(n);
   var cur = n, backToList = false;
-  try { window.__NE_CUR = cur; } catch (e) { }
+  try { window.__NE_CUR = cur; window.__NT_ISNEW = isNew; } catch (e) { }
   if (isNew && opts.seed) { cur.text = String(opts.seed); }
   var canVoice = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   /* 保存/返回后去哪：默认回列表，从查看模式进来则回查看模式 */
@@ -11364,6 +11369,7 @@ function bindViewSwipe(list, idx) {
         h2.style.opacity = '0';
         h2.style.transform = 'translateX(' + (dir > 0 ? 22 : -22) + 'px)';
         h2.scrollTop = 0;
+        var _sh = scrollHostOf(h2); if (_sh && _sh !== h2) _sh.scrollTop = 0;
         void h2.offsetWidth;
         h2.style.transition = 'opacity .19s ease, transform .19s ease';
         h2.style.opacity = '1';
@@ -12792,6 +12798,20 @@ function nvDoFind(q) {
   if (c) c.textContent = hits.length ? ('1/' + hits.length) : '无结果';
   if (hits.length) nvGoto(0);
 }
+/* 找到「真正能滚」的祖先容器。
+   查看模式是「全屏阅读」布局：#shBody 此时为 overflow:hidden，
+   真正滚动的是内层 .nvcard.nvgrow —— 以前写死滚 #shBody，所以点了没反应。 */
+function nvScrollHost(el){
+  var e = el;
+  while (e && e !== document.documentElement) {
+    try {
+      var oy = getComputedStyle(e).overflowY;
+      if (/(auto|scroll|overlay)/.test(oy) && e.scrollHeight > e.clientHeight + 4) return e;
+    } catch (x) { }
+    e = e.parentElement;
+  }
+  return document.getElementById('shBody');
+}
 function nvGoto(i) {
   if (!NV_HITS.length) return;
   NV_IDX = (i + NV_HITS.length) % NV_HITS.length;
@@ -12800,12 +12820,26 @@ function nvGoto(i) {
   var c = $('#nvFcnt');
   if (c) c.textContent = (NV_IDX + 1) + '/' + NV_HITS.length;
   try {
-    var host = document.getElementById('shBody');
-    if (host && el.offsetTop != null) {
-      var top = el.offsetTop - host.offsetTop - host.clientHeight / 2;
-      host.scrollTop = Math.max(0, top);
-    } else el.scrollIntoView({ block: 'center' });
-  } catch (e) { }
+    var host = nvScrollHost(el);
+    if (!host) return;
+    var hr = host.getBoundingClientRect(), er = el.getBoundingClientRect();
+    var padT = 12, padB = 12;
+    /* 顶部查找条（sticky）会盖住内容，滚的时候让开它 */
+    var bar = document.getElementById('nvFind');
+    if (bar && bar.style.display !== 'none') {
+      var br = bar.getBoundingClientRect();
+      if (br.height && br.bottom > hr.top)
+        padT = Math.max(padT, Math.min(br.bottom - hr.top + 14, hr.height * 0.4));
+    }
+    var delta = 0;
+    if (er.top < hr.top + padT) delta = er.top - hr.top - padT;          /* 在上方/被挡 → 上滚 */
+    else if (er.bottom > hr.bottom - padB) delta = er.bottom - hr.bottom + padB; /* 在下方 → 下滚 */
+    if (!delta) return;                                                   /* 已可见就不动，避免无谓跳动 */
+    var max = host.scrollHeight - host.clientHeight;
+    host.scrollTop = Math.max(0, Math.min(max, host.scrollTop + delta));
+  } catch (e) {
+    try { el.scrollIntoView({ block: 'center' }); } catch (x) { }
+  }
 }
 function nvBindFind() {
   var inp = $('#nvFq');
@@ -12871,6 +12905,37 @@ function nvBindFind() {
   ].join('\n');
   document.head.appendChild(s);
 })();
+
+/* ========== 统一版本号：一处定义，全局引用 ==========
+   之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
+   导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
+var APP_VER = '3.1·b33';
+
+/* ========== 全局工具：找真正的滚动容器 ==========
+   #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
+   凡是写死 $('#shBody').scrollTop = X 的地方，在后两种形态下全部静默失效（不报错、不动）。
+   统一改成先探测真实容器。 */
+function scrollHostOf(el){
+  var e = el || document.getElementById('shBody');
+  while (e && e !== document.documentElement) {
+    try {
+      var oy = getComputedStyle(e).overflowY;
+      if (/(auto|scroll|overlay)/.test(oy) && e.scrollHeight > e.clientHeight + 4) return e;
+    } catch (x) { }
+    e = e.parentElement;
+  }
+  var b = document.getElementById('shBody');
+  return b;
+}
+/* 保存 / 恢复滚动位置（自动适配真实容器） */
+function saveScroll(el){
+  var h = scrollHostOf(el);
+  return { host: h, top: h ? h.scrollTop : 0 };
+}
+function restoreScroll(st){
+  if (!st || !st.host) return;
+  try { if (st.host.scrollTop !== st.top) st.host.scrollTop = st.top; } catch (e) { }
+}
 
 /* ========== 12. 便签：左滑删除（列表 + 紧凑视图） ========== */
 
@@ -13581,9 +13646,11 @@ function openTbGroup(g) {
   window.drawHabit = function () {
     var b = $('#shBody');
     var st = b ? b.scrollTop : 0;
+    var hh = scrollHostOf(b), htop = hh ? hh.scrollTop : 0;
     var r = _dh.apply(this, arguments);
     var b2 = $('#shBody');
     if (b2 && st > 0) b2.scrollTop = st;
+    if (hh && hh !== b2 && htop > 0 && hh.scrollTop !== htop) hh.scrollTop = htop;
     return r;
   };
 })();
@@ -13597,8 +13664,11 @@ function openTbGroup(g) {
     var same = (window.SHEET && SHEET.open && SHEET.id === id);
     var b = $('#shBody');
     var st = b ? b.scrollTop : 0;
+    var realH = scrollHostOf(b);
+    var realTop = realH ? realH.scrollTop : 0;
     var r = _os.apply(this, arguments);
     if (same && st > 0) { var b2 = $('#shBody'); if (b2) b2.scrollTop = st; }
+    if (same && realTop > 0) { var r2 = scrollHostOf(b); if (r2 && r2 !== b2 && r2.scrollTop !== realTop) r2.scrollTop = realTop; }
     return r;
   };
 })();
@@ -19720,18 +19790,53 @@ function patchDlg() {
   function applyHist(v) {
     var t = ta(); if (!t) return false;
     HIST.lock = 1;
+    /* 撤销前：记下光标与真实滚动位置。
+       注意 shBody 在编辑模式是 overflow:hidden，真正滚的是 textarea 本身 */
+    var oldPos = 0;
+    try { oldPos = t.selectionStart || 0; } catch (e) { }
+    var host = (typeof scrollHostOf === 'function') ? scrollHostOf(t) : t;
+    var oldTop = host ? host.scrollTop : 0;
+
     t.value = v;
     try { t.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) { }
     try {
-      var p = v.length; t.setSelectionRange(p, p); t.focus();
+      /* 光标停在原处，而不是强制跳到末尾 —— 之前 p=v.length 会把视野拽到文末 */
+      var p = Math.min(oldPos, v.length);
+      t.setSelectionRange(p, p);
+      t.focus();
     } catch (e) { }
+
+    /* focus() 会触发浏览器"让光标可见"的自动滚动，必须在其之后再压回去 */
+    function keepView() {
+      try {
+        var h2 = (typeof scrollHostOf === 'function') ? scrollHostOf(t) : t;
+        if (h2 && h2.scrollTop !== oldTop) h2.scrollTop = oldTop;
+      } catch (e) { }
+    }
+    keepView();
+    try { requestAnimationFrame(keepView); } catch (e) { }
+    setTimeout(keepView, 0);
+    setTimeout(keepView, 60);
+
     setTimeout(function () { HIST.lock = 0; }, 60);
     syncTbBtns();
     return true;
   }
   function doUndo() {
     if (HIST.idx <= 0) { toast('没有更早的内容了'); return false; }
-    HIST.idx--; return applyHist(HIST.stack[HIST.idx]);
+    var isNew = false;
+    try { isNew = !!window.__NT_ISNEW; } catch (e) { }
+    var i = HIST.idx - 1;
+    /* 安全网：已存在的便签不允许撤销到"空内容"。
+       因为保存时空内容会被当作废弃便签直接删除，一次误触就永久丢失。 */
+    if (!isNew) {
+      while (i > 0 && !(HIST.stack[i] || '').trim()) i--;
+      if (!(HIST.stack[i] || '').trim()) {
+        toast('再撤销就清空了，已帮你停住');
+        return false;
+      }
+    }
+    HIST.idx = i; return applyHist(HIST.stack[i]);
   }
   function doRedo() {
     if (HIST.idx >= HIST.stack.length - 1) { toast('已经是最新内容'); return false; }
@@ -19786,6 +19891,15 @@ function patchDlg() {
       pushHist(t.value);
     }, 420);
   }, true);
+  /* 粘贴/换行立刻记一个还原点：否则撤销一次会丢掉整段粘贴内容 */
+  ['paste', 'cut', 'drop'].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      var t = e.target;
+      if (!t || t.id !== 'neT') return;
+      clearTimeout(ht);
+      setTimeout(function () { HIST.lock = 0; pushHist(t.value); }, 0);
+    }, true);
+  });
 
   /* ---------- 选中菜单：只此一套 ---------- */
   var M = null;
@@ -20140,12 +20254,16 @@ function patchDlg() {
       var body = document.querySelector('#shBody');
       var st = body ? body.scrollTop : 0;
       var tst = t ? t.scrollTop : 0;
+      /* shBody 在编辑模式为 overflow:hidden，真实滚动容器是 #neT 本身 */
+      var realHost = scrollHostOf(t || body);
+      var realTop = realHost ? realHost.scrollTop : 0;
       var ss = 0, se = 0;
       try { ss = t.selectionStart || 0; se = t.selectionEnd || 0; } catch (e) { }
       var r = fn ? fn() : false;
       /* 恢复滚动，不让页面跳到光标处 */
       if (body) body.scrollTop = st;
       if (t) t.scrollTop = tst;
+      if (realHost && realHost !== body && realHost !== t) realHost.scrollTop = realTop;
       try {
         if (t) {
           var L = (t.value || '').length;
@@ -20261,8 +20379,11 @@ function patchDlg() {
       feP = now;
       var body = document.querySelector('#shBody');
       var st = body ? body.scrollTop : 0;
+      var fh = scrollHostOf(document.getElementById('neT') || body);
+      var ftop = fh ? fh.scrollTop : 0;
       _fe.apply(null, arguments);
       if (body && body.scrollTop !== st) body.scrollTop = st;
+      if (fh && fh !== body && fh.scrollTop !== ftop) fh.scrollTop = ftop;
     };
     f2.__w2 = 1;
     window.fitEditor = f2;
@@ -22826,10 +22947,10 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
         var gap=Math.round(visBottom-last);
         var dg=document.getElementById('__diag');
         if(!dg){dg=document.createElement('div');dg.id='__diag';
-          dg.style.cssText='position:fixed;left:4px;bottom:1px;z-index:90;font-size:9px;'+
-            'opacity:.85;pointer-events:none;color:#e11d48;font-family:monospace;font-weight:700';
+          dg.style.cssText='position:fixed;left:4px;bottom:1px;z-index:90;font-size:11px;'+
+            'opacity:.9;pointer-events:none;color:#e11d48;font-family:monospace;font-weight:700';
           document.body.appendChild(dg);}
-        dg.textContent='v30 余'+gap+'px 视口'+Math.round(vh);
+        var SA=(navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);var SH=Math.round(Math.max(screen.height||0,screen.width||0));var scrGap=Math.round(SH-vh)+gap;dg.textContent='v31 屏余'+scrGap+'pt 视口'+Math.round(vh)+'/屏'+SH+(SA?' SA:是':' SA:否(浏览器内)');
         /* 版本号旁也挂一份（云同步面板打开时才会有） */
         var el=null;
         var all=[...document.querySelectorAll('*')].filter(function(e){
