@@ -930,20 +930,69 @@ function toast(msg, kind) {
   setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 300); }, 2200);
 }
 var lastCopy = '';
+/* 同步兜底：iOS Safari 必须在用户手势内、且 contentEditable + setSelectionRange 才可靠 */
+function legacyCopy(t) {
+  var ok = false;
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = t;
+    ta.setAttribute('readonly', '');
+    ta.contentEditable = 'true';
+    ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;padding:0;margin:0;' +
+      'border:none;outline:none;opacity:0;z-index:-1;font-size:16px';
+    document.body.appendChild(ta);
+    ta.focus();
+    try { ta.setSelectionRange(0, t.length); } catch (e) { try { ta.select(); } catch (e2) { } }
+    ok = document.execCommand('copy');
+    ta.remove();
+  } catch (e) { ok = false; }
+  return !!ok;
+}
+/* 都不行时：给一个可长按选择的框，别静默失败 */
+function manualCopy(t) {
+  try {
+    var w = document.createElement('div');
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);' +
+      'display:flex;align-items:center;justify-content:center;padding:18px';
+    w.innerHTML = '<div style="width:100%;max-width:520px;background:var(--surf);border-radius:16px;' +
+      'padding:16px;border:1px solid var(--line)">' +
+      '<div style="font-size:var(--f15);font-weight:700;margin-bottom:8px">自动复制失败，请手动复制</div>' +
+      '<textarea id="mcT" readonly style="width:100%;height:150px;font-size:var(--f13);' +
+      'border:1px solid var(--line);border-radius:10px;background:var(--surf2);color:var(--tx);padding:10px"></textarea>' +
+      '<div style="text-align:right;margin-top:10px"><button id="mcX" class="btn primary">关闭</button></div></div>';
+    document.body.appendChild(w);
+    w.querySelector('#mcT').value = t;
+    w.querySelector('#mcX').onclick = function () { w.remove(); };
+    w.addEventListener('click', function (e) { if (e.target === w) w.remove(); });
+  } catch (e) { toast('复制失败', 'err'); }
+}
+function copyCount(t) { return String(t == null ? '' : t).length; }
 function copy(t, tip) {
   t = String(t == null ? '' : t);
-  if (!t.trim()) { toast('没有可复制的内容', 'err'); return; }
+  if (!t.trim()) { toast('没有可复制的内容', 'err'); return false; }
   lastCopy = t;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(t).then(function () { toast(tip || '已复制'); }, fb);
-  } else fb();
-  function fb() {
-    var ta = document.createElement('textarea');
-    ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;top:0';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast(tip || '已复制'); } catch (e) { toast('复制失败', 'err'); }
-    ta.remove();
+  var msg = tip || '已复制';
+  /* 已带「字」的提示不再重复计数 */
+  if (msg.indexOf('字') < 0) msg += ' · ' + copyCount(t) + ' 字';
+  var okDone = function () { toast(msg); };
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext !== false) {
+    var p = null;
+    try { p = navigator.clipboard.writeText(t); } catch (e) { p = null; }
+    if (p && typeof p.then === 'function') {
+      var settled = false;
+      var timer = setTimeout(function () { if (!settled) { settled = true; if (legacyCopy(t)) okDone(); else manualCopy(t); } }, 1200);
+      p.then(function () {
+        if (settled) return; settled = true; clearTimeout(timer); okDone();
+      }, function () {
+        if (settled) return; settled = true; clearTimeout(timer);
+        if (legacyCopy(t)) okDone(); else manualCopy(t);
+      });
+      return true;
+    }
   }
+  if (legacyCopy(t)) { okDone(); return true; }
+  manualCopy(t);
+  return false;
 }
 function dlDataUrl(text, type) {
   try {
@@ -2702,17 +2751,13 @@ function drawSchulte() {
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
     '<div class="card"><div class="ch"><h3>成绩</h3>' + (hist.length ? '<span class="sp"><button class="mini dg" id="sClr">清空</button></span>' : '') + '</div>' +
-    '<div class="row" style="gap:7px;margin-bottom:6px">' + [3, 4, 5, 6].map(function (n) {
+    '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
-      return '<button class="sbtn" data-sr="' + n + '" style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px;border:1px solid transparent"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></button>';
+      return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
     }).join('') + '</div>' +
-    '<div class="xs mut2" style="margin-bottom:10px">点任一宫格，看它的成绩排行</div>' +
     (hist.length ? '<div style="max-height:170px;overflow-y:auto" class="scroll">' + hist.slice(0, 12).map(function (h) {
       return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px"><span class="sm">' + h.n + '×' + h.n + ' ' + (h.mode === 'num' ? '数字' : h.mode === 'rev' ? '倒序' : '字母') + ' <span class="mut2 xs">' + fmtMD(ds(new Date(h.at))) + '</span></span><b>' + h.sec + '"' + (h.err ? ' <span class="mut2 xs">错' + h.err + '</span>' : '') + '</b></div>';
     }).join('') + '</div>' : '<div class="empty" style="padding:14px">还没有成绩</div>') + '</div>';
-  $$('#shBody [data-sr]').forEach(function (b) {
-    b.onclick = function () { schulteRank(+b.dataset.sr); };
-  });
   $$('#shBody .seg button').forEach(function (b) {
     b.classList.toggle('on', +b.dataset.n === SB.n);
     b.onclick = function () { SB.n = +b.dataset.n; sbReset(); drawSchulte(); };
@@ -5841,11 +5886,10 @@ function drawSchulte() {
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
     '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩</h3><span class="sp">' + (hist.length ? '<button class="mini" id="sRank">排行 ›</button> <button class="mini dg" id="sClr">清空</button>' : '') + '</span></div>' +
-    '<div class="row" style="gap:7px;margin-bottom:6px">' + [3, 4, 5, 6].map(function (n) {
+    '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
-      return '<button class="sbtn" data-sr="' + n + '" style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px;border:1px solid transparent"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></button>';
+      return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
     }).join('') + '</div>' +
-    '<div class="xs mut2" style="margin-bottom:10px">点任一宫格，看它的成绩排行</div>' +
     '<div class="sbstd">参考（20 岁左右成年人，数字模式）：' + [3, 4, 5, 6].map(function (n) {
       var s = SBSTD[n]; return n + '×' + n + ' 优≤' + s[0] + '" 良≤' + s[1] + '"';
     }).join(' · ') + '。成绩只供自我对比，别太较真。</div></div>' +
@@ -5861,9 +5905,6 @@ function drawSchulte() {
       };
     }), { onDel: 1, empty: '' }) : '<div class="empty" style="padding:14px">还没有成绩<br>点「开始」来一局</div>') + '</div>';
 
-  $$('#shBody [data-sr]').forEach(function (b) {
-    b.onclick = function () { schulteRank(+b.dataset.sr); };
-  });
   $$('#shBody .seg button').forEach(function (b) {
     b.classList.toggle('on', +b.dataset.n === SB.n);
     b.onclick = function () { SB.n = +b.dataset.n; sbReset(); drawSchulte(); };
@@ -5888,11 +5929,8 @@ function drawSchulte() {
   if (cl) cl.onclick = function () {
     confirmBox('清空成绩', '历史记录也会删除', function () { S.game.schulte = {}; S.game.history = []; save(); drawSchulte(); }, '清空');
   };
-  $$('#shBody [data-sr]').forEach(function (b) {
-    b.onclick = function () { schulteRank(+b.dataset.sr); };
-  });
   var rk = $('#sRank');
-  if (rk) rk.onclick = function () { schulteRank(SB.n); };
+  if (rk) rk.onclick = function () { schulteRank(); };
   histBind('#shBody', null, function (idx) {
     S.game.history.splice(+idx, 1);
     save(); drawSchulte(); toast('已删除这条成绩');
@@ -5946,19 +5984,10 @@ function srStatBox(k, v) {
     '<span class="xs mut" style="display:block">' + k + '</span>' +
     '<b style="font-size:var(--f17)">' + v + '</b></span>';
 }
-function schulteRank(n, mode) {
-  n = num(n, 0) || (SB && SB.n) || 5;
-  mode = mode || 'all';
-  var pool = (S.game.history || []).filter(function (h) {
-    return num(h.n, 5) === n && (mode === 'all' || sbModeOf(h) === mode);
-  });
-  if (!pool.length) {
-    var hasAny = (S.game.history || []).some(function (h) { return num(h.n, 5) === n; });
-    toast(hasAny ? (n + '×' + n + ' 该模式还没有成绩') : (n + '×' + n + ' 还没有成绩'));
-    return;
-  }
-  var hist = pool.slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
+function schulteRank() {
+  var hist = (S.game.history || []).slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
   var N = hist.length;
+  if (!N) { toast('还没有成绩'); return; }
   var sum = 0;
   hist.forEach(function (h) { sum += num(h.sec, 0); });
   var avg = sum / N;
@@ -5969,14 +5998,6 @@ function schulteRank(n, mode) {
   }
   var p5 = pctOf(5), p10 = pctOf(10), p20 = pctOf(20);
   var h = '';
-  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>范围</h3></div>' +
-    '<div class="row" style="gap:6px;margin-bottom:7px" id="srN">' + [3, 4, 5, 6].map(function (x) {
-      return '<button class="mini" data-n="' + x + '"' + (x === n ? ' style="background:color-mix(in srgb,var(--a1) 18%,transparent);border-color:color-mix(in srgb,var(--a1) 46%,transparent);color:var(--tx);font-weight:640"' : '') + '>' + x + '×' + x + '</button>';
-    }).join('') + '</div>' +
-    '<div class="row" style="gap:6px" id="srM">' + [['all', '全部'], ['num', '数字'], ['rev', '倒序'], ['letter', '字母']].map(function (x) {
-      return '<button class="mini" data-m="' + x[0] + '"' + (x[0] === mode ? ' style="background:color-mix(in srgb,var(--a1) 18%,transparent);border-color:color-mix(in srgb,var(--a1) 46%,transparent);color:var(--tx);font-weight:640"' : '') + '>' + x[1] + '</button>';
-    }).join('') + '</div>' +
-    '<div class="xs mut2" style="margin-top:7px">不同宫格难度差很多，分开排名才可比。</div></div>';
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>总览</h3></div>' +
     '<div class="row" style="gap:7px">' +
     srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(1) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(1) + '"') +
@@ -5993,7 +6014,7 @@ function schulteRank(n, mode) {
     top.map(function (r, i) {
       return '<div class="spread" style="padding:8px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px;gap:8px">' +
         '<span class="sm" style="min-width:0;flex:1"><b style="color:var(--a1);display:inline-block;min-width:24px">' + (i + 1) + '.</b> ' +
-        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + srModeName(r.mode) +
+        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) +
         (num(r.err, 0) ? ' · 错' + num(r.err, 0) + '次' : '') + '</span><br>' +
         '<span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
@@ -6003,17 +6024,11 @@ function schulteRank(n, mode) {
     hist.map(function (r, i) {
       return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:5px;gap:8px">' +
         '<span class="sm" style="min-width:0;flex:1"><span class="mut2 xs">#' + (i + 1) + '</span> ' +
-        srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
+        r.n + '×' + r.n + ' ' + srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
         '<br><span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
     }).join('') + '</div></div>';
-  openSheet('srank', n + '×' + n + ' 成绩排行', h, { back: function () { drawSchulte(); } });
-  $$('#srN [data-n]').forEach(function (b) {
-    b.onclick = function () { schulteRank(+b.dataset.n, mode); };
-  });
-  $$('#srM [data-m]').forEach(function (b) {
-    b.onclick = function () { schulteRank(n, b.dataset.m); };
-  });
+  openSheet('srank', '成绩排行', h, { back: function () { drawSchulte(); } });
   $$('#shBody [data-srdel]').forEach(function (b) {
     b.onclick = function () {
       var ts = +b.dataset.srdel;
@@ -6030,8 +6045,7 @@ function schulteRank(n, mode) {
             if (!S.game.schulte[k] || v < S.game.schulte[k]) S.game.schulte[k] = v;
           });
           save(); chimeSoft(); toast('已删除');
-          var still = (S.game.history || []).some(function (x) { return num(x.n, 5) === n; });
-          if (!(S.game.history || []).length || !still) drawSchulte(); else schulteRank(n, mode);
+          if (!(S.game.history || []).length) drawSchulte(); else schulteRank();
         }, '删除');
     };
   });
@@ -10445,7 +10459,7 @@ function noteEdit(id) {
         b.onclick = function () { cur.imgs.splice(+b.dataset.di, 1); noteSave(); noteEdit(cur.id); toast('已删除'); };
       });
       $('#nePin').onclick = function () { cur.pin = cur.pin ? 0 : 1; noteSave(); noteEdit(cur.id); toast(cur.pin ? '已置顶' : '已取消置顶'); };
-      $('#neCopy').onclick = function () { copy(noteText(cur), '已复制'); };
+      $('#neCopy').onclick = function () { noteCopyPanel([cur], { sel: noteCurSel() }); };
       var del = $('#neDel');
       if (del) del.onclick = function () {
         confirmBox('删除便签', '删掉就找不回来了，确定吗？', function () {
@@ -10716,7 +10730,8 @@ function noteDone(n) {
 }
 function noteText(n) {
   noteFix(n);
-  var t = (n.pin ? '📌 ' : '') + noteBody(n);
+  var _tt = ''; try { _tt = noteTitle(n) || ''; } catch (e) { _tt = ''; }
+  var t = (_tt ? _tt + '\n' : '') + (n.pin ? '📌 ' : '') + noteBody(n);
   if (n.tags && n.tags.length) t += '\n【标签】' + n.tags.join('、');
   if (n.imgs && n.imgs.length) t += '\n（含 ' + n.imgs.length + ' 张图）';
   var d = new Date(n.up || n.at);
@@ -10725,7 +10740,8 @@ function noteText(n) {
 }
 function noteMd(n) {
   noteFix(n);
-  var t = '# ' + (n.pin ? '📌 ' : '') + '便签\n\n';
+  var _ti = ''; try { _ti = noteTitle(n) || ''; } catch (e) { _ti = ''; }
+  var t = '# ' + (n.pin ? '📌 ' : '') + (_ti || '便签') + '\n\n';
   if (n.type === 'list') t += (n.items || []).map(function (it) { return '- [' + (it.done ? 'x' : ' ') + '] ' + (it.t || ''); }).join('\n');
   else t += (n.text || '');
   t += '\n\n';
@@ -10734,6 +10750,123 @@ function noteMd(n) {
   t += '更新：' + fmtMD(ds(d)) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '\n';
   return t;
 }
+/* 纯净正文：不带置顶符号、不带标签、不带时间戳、不带图片备注 —— 复制默认用这个 */
+function notePlain(n) {
+  noteFix(n);
+  return noteBody(n) || '';
+}
+/* 带元信息的分享版（= 旧 noteText，保留给「分享用」） */
+function noteShare(n) { return noteText(n); }
+/* Markdown + 元信息 */
+function noteMdFull(n) {
+  noteFix(n);
+  var md = noteMd(n);
+  var d = new Date(n.up || n.at);
+  return md + '\n> 更新于 ' + fmtMD(ds(d)) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '\n';
+}
+/* 便签复制格式：记住上次选择 */
+var NOTE_CP_KEY = 'lumen.noteCopyFmt';
+function noteCpGet() { try { return localStorage.getItem(NOTE_CP_KEY) || 'plain'; } catch (e) { return 'plain'; } }
+function noteCpSet(k) { try { localStorage.setItem(NOTE_CP_KEY, k); } catch (e) { } }
+
+/* ===== 复制面板：选格式 + 记住上次 + 字数预览 ===== */
+function noteCopyPanel(list, opt) {
+  opt = opt || {};
+  if (!list || !list.length) { toast('没有可复制的内容', 'err'); return; }
+  var last = noteCpGet();
+  /* 构造候选项：k / 名称 / 说明 / 文本 */
+  var items = [];
+  if (opt.sel && String(opt.sel).trim()) {
+    items.push({ k: 'sel', n: '只复制选中这段', d: '你刚划的 ' + String(opt.sel).length + ' 个字，其余不动', t: String(opt.sel) });
+  }
+  var one = list.length === 1 ? list[0] : null;
+  if (one) {
+    items.push({ k: 'plain', n: '复制正文', d: '纯文本，不带标签和时间', t: notePlain(one) });
+    items.push({ k: 'md', n: '复制为 Markdown', d: '保留标题、列表、勾选框', t: noteMd(one) });
+    items.push({ k: 'share', n: '复制带标题·时间', d: '发给别人看，带更新时间', t: noteShare(one) });
+  } else {
+    var SEP = '\n\n' + '─'.repeat(14) + '\n\n';
+    items.push({ k: 'plain', n: '复制 ' + list.length + ' 条（纯文本）', d: '只复制正文，用分隔线隔开', t: list.map(notePlain).join(SEP) });
+    items.push({ k: 'md', n: '复制 ' + list.length + ' 条（Markdown）', d: '保留标题、列表、勾选框', t: list.map(noteMd).join(SEP) });
+    items.push({ k: 'share', n: '复制 ' + list.length + ' 条（带时间）', d: '每条都带更新时间', t: list.map(noteShare).join(SEP) });
+  }
+  /* 排序：有选区时「复制选中」永远第一；其余把上次用过的提前 */
+  items.sort(function (a, b) {
+    if (a.k === 'sel' && b.k !== 'sel') return -1;
+    if (b.k === 'sel' && a.k !== 'sel') return 1;
+    if (a.k === last && b.k !== last) return -1;
+    if (b.k === last && a.k !== last) return 1;
+    return 0;
+  });
+
+  var old = document.getElementById('ncpMask');
+  if (old) old.remove();
+  var mask = document.createElement('div');
+  mask.id = 'ncpMask';
+  mask.style.cssText = 'position:fixed;inset:0;z-index:99800;background:rgba(0,0,0,.42);' +
+    'display:flex;align-items:flex-end;justify-content:center';
+  var box = document.createElement('div');
+  box.style.cssText = 'width:100%;max-width:520px;background:var(--surf);color:var(--tx);' +
+    'border-radius:18px 18px 0 0;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));' +
+    'border:1px solid var(--line);box-shadow:0 -8px 30px rgba(0,0,0,.28)';
+  var h = '<div style="padding:10px 12px 6px;font-size:var(--f15);font-weight:750">复制为</div>';
+  items.forEach(function (it) {
+    var cnt = String(it.t || '').length;
+    h += '<button class="ncpItem" data-k="' + it.k + '" style="display:block;width:100%;text-align:left;' +
+      'border:none;background:none;padding:12px 12px;border-radius:12px;margin-bottom:2px">' +
+      '<div style="font-size:var(--f15);font-weight:650;color:var(--tx)">' + esc(it.n) +
+      (it.k === last ? '<span style="margin-left:6px;font-size:var(--f10);color:var(--a1);' +
+        'border:1px solid var(--line);border-radius:6px;padding:1px 5px">上次用过</span>' : '') +
+      '</div>' +
+      '<div style="font-size:var(--f11);color:var(--tx3);margin-top:3px">' + esc(it.d) +
+      ' · ' + cnt + ' 字</div></button>';
+  });
+  h += '<button id="ncpX" style="display:block;width:100%;border:none;background:var(--surf2);' +
+    'color:var(--tx2);font-size:var(--f15);padding:12px;border-radius:12px;margin-top:6px">取消</button>';
+  box.innerHTML = h;
+  mask.appendChild(box);
+  document.body.appendChild(mask);
+  var close = function () { try { mask.remove(); } catch (e) { } };
+  mask.addEventListener('click', function (e) { if (e.target === mask) close(); });
+  box.querySelector('#ncpX').onclick = close;
+  Array.prototype.forEach.call(box.querySelectorAll('.ncpItem'), function (b) {
+    b.onclick = function () {
+      var k = b.getAttribute('data-k');
+      var it = items.filter(function (x) { return x.k === k; })[0];
+      close();
+      setTimeout(function () {
+        if (!it) return;
+        noteCpSet(k);
+        copy(it.t, '已复制');
+      }, 60);
+    };
+  });
+}
+/* 当前选区：编辑框优先，其次便签正文（避免把页面其它地方的选区误当便签选区） */
+function noteCurSel() {
+  try {
+    var ed = document.querySelector('#neT');
+    if (ed && document.activeElement === ed) {
+      var v = ed.value || '', a = ed.selectionStart, b = ed.selectionEnd;
+      if (b > a) return v.slice(a, b);
+      return '';
+    }
+    var s = window.getSelection();
+    var t = s ? String(s) : '';
+    if (!t || !t.trim()) return '';
+    var node = s.anchorNode;
+    var el = node ? (node.nodeType === 1 ? node : node.parentNode) : null;
+    if (el && el.closest && el.closest('.nvcard')) return t;
+    if (el && el.closest && el.closest('.nedit')) return t;
+    return '';
+  } catch (e) { return ''; }
+}
+/* 便签列表页：复制当前筛选的全部 */
+function noteCopyAll(list) {
+  if (!list.length) { toast('没有可复制的便签', 'err'); return; }
+  noteCopyPanel(list);
+}
+
 var NOTE_VIEW = 'all', NOTE_TAG = '', NOTE_SEL = null, NOTE_UNDO = null;
 
 /* ---------- 长按：1.2 秒 + 手指轻微移动不取消（容差 14px） ---------- */
@@ -10828,7 +10961,7 @@ function notesSheet() {
       if (a === 'add') noteEdit(null);
       if (a === 'sel') { NOTE_SEL = {}; drawNotes(); }
       if (a === 'cancelsel') { NOTE_SEL = null; drawNotes(); }
-      if (a === 'copy') copy(notesSorted(NOTE_VIEW).map(noteText).join('\n\n' + '─'.repeat(14) + '\n\n') || '（空）', '已复制全部');
+      if (a === 'copy') noteCopyAll(notesSorted(NOTE_VIEW));
       if (a === 'down') exportNotesDlg();
     },
     onMount: drawNotes
@@ -11090,12 +11223,12 @@ function noteEdit(id, opts) {
     var big = true;
     var adv = ' neadv';
     var h = '';
-    h += '<div class="nehead" id="neHead">' + '<div class="segline sm' + adv + '" id="neType" style="margin-bottom:8px">' +
+    h += '<div class="segline sm' + adv + '" id="neType" style="margin-bottom:8px">' +
       '<button data-v="text"' + (isList ? '' : ' class="on"') + '>文本</button>' +
       '<button data-v="list"' + (isList ? ' class="on"' : '') + '>清单</button>' +
       (canVoice ? '<button data-v="voice" id="neMic">🎤 语音</button>' : '') + '</div>' +
     '<input class="inp" id="neTitle" placeholder="标题（可空，默认取首行）" value="' + esc(cur.title || '') +
-    '" style="height:38px;font-size:var(--f15);font-weight:660;margin-bottom:8px">' + '</div>';
+    '" style="height:38px;font-size:var(--f15);font-weight:660;margin-bottom:8px">';
     /* 新建且为空：模板 */
     var isEmpty = isList ? !(cur.items || []).length : !(cur.text || '').trim();
     if (isEmpty) {
@@ -11292,7 +11425,7 @@ function noteEdit(id, opts) {
     var _p1 = $('#nePin'); if (_p1) _p1.onclick = function () { cur.pin = cur.pin ? 0 : 1; noteSave(); rerender(); toast(cur.pin ? '已置顶' : '已取消置顶'); };
     var _p2 = $('#neLock'); if (_p2) _p2.onclick = function () { cur.lock = cur.lock ? 0 : 1; noteSave(); rerender(); toast(cur.lock ? '已设为私密（列表中打码）' : '已设为公开'); };
     var _p3 = $('#neAr'); if (_p3) _p3.onclick = function () { cur.arch = cur.arch ? 0 : 1; if (cur.arch) cur.pin = 0; noteSave(); rerender(); toast(cur.arch ? '已归档' : '已取消归档'); };
-    var _neCopy = $('#neCopy'); if (_neCopy) _neCopy.onclick = function () { copy(noteText(cur), '已复制'); };
+    var _neCopy = $('#neCopy'); if (_neCopy) _neCopy.onclick = function () { noteCopyPanel([cur], { sel: noteCurSel() }); };
     var _neDup = $('#neDup'); if (_neDup) _neDup.onclick = function () {
       var cp = JSON.parse(JSON.stringify(cur));
       cp.id = uid(); cp.at = Date.now(); cp.up = Date.now(); cp.pin = 0;
@@ -11543,7 +11676,7 @@ function noteView(id) {
       '<button class="iconbtn" data-act="del" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>',
     onAction: function (a) {
       if (a === 'edit') noteEdit(id, { back: 'view' });
-      if (a === 'copy') copy(noteText(n), '已复制');
+      if (a === 'copy') noteCopyPanel([n], { sel: noteCurSel() });
       if (a === 'pin') { n.pin = n.pin ? 0 : 1; save(); toast(n.pin ? '已置顶' : '已取消置顶'); noteView(id); }
       if (a === 'del') {
         confirmBox('删除便签', '会放进回收站，可在回收站恢复。', function () {
@@ -12337,7 +12470,7 @@ function noteMenu(id) {
               cp.id = uid(); cp.at = Date.now(); cp.up = Date.now(); cp.pin = 0; cp.del = 0; cp.arch = 0;
               (S.notes = S.notes || []).push(cp); save(); toast('已复制一份');
             }
-            if (a === 'dup') { copy(noteText(n), '已复制内容'); return; }
+            if (a === 'dup') { noteCopyPanel([n], { sel: noteCurSel() }); return; }
             if (a === 'arch') { n.arch = n.arch ? 0 : 1; if (n.arch) n.pin = 0; save(); toast(n.arch ? '已归档' : '已取消归档'); }
             if (a === 'del') {
               confirmBox('删除便签', '会放进回收站，可恢复。', function () {
@@ -12863,7 +12996,7 @@ function syncNoteActs() {
       if (act === 'cal') noteCalendar();
       if (act === 'nset') noteSettings();
       if (act === 'cancelsel') { NOTE_SEL = null; drawNotes(); }
-      if (act === 'copy') copy(filterList(NOTE_FILTER).map(noteText).join('\n\n' + '─'.repeat(14) + '\n\n') || '（空）', '已复制当前筛选的便签');
+      if (act === 'copy') noteCopyAll(filterList(NOTE_FILTER));
       if (act === 'down') exportNotesDlg();
     };
   });
@@ -13047,7 +13180,7 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.1·b38';
+var APP_VER = '3.1·b39';
 
 /* ========== 全局工具：找真正的滚动容器 ==========
    #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
@@ -13407,7 +13540,7 @@ function openTbGroup(g) {
     tbPanel('更多', [
       { k: 'tolist', i: '☑', n: '转成清单', fn: function () { var b11 = document.querySelector('#neType [data-v="list"]'); if (b11) b11.click(); } },
       { k: 'totext', i: '📝', n: '转成文本', fn: function () { var b12 = document.querySelector('#neType [data-v="text"]'); if (b12) b12.click(); } },
-      { k: 'copy', i: '📋', n: '复制内容', fn: function () { try { copy(noteText(n), '已复制'); } catch (e) { } } },
+      { k: 'copy', i: '📋', n: '复制内容', fn: function () { try { noteCopyPanel([n], { sel: noteCurSel() }); } catch (e) { } } },
       { k: 'undo', i: '↩', n: '放弃修改', fn: function () { confirmBox('放弃修改', '回到进入编辑前的状态？', function () { try { closeSheet(); } catch (e) { } }, '放弃'); } }
     ]);
   }
@@ -14803,8 +14936,7 @@ function drawCd2() {
       setTimeout(hideBar, 300);
     });
   }
-  document.addEventListener('mouseup', function () { setTimeout(showBar, 20); }, true);
-  document.addEventListener('touchend', function () { setTimeout(showBar, 60); }, true);
+  /* v39：选区菜单已统一，此套停用（样式保留） */
   document.addEventListener('selectionchange', function () {
     var sel = window.getSelection();
     if (!sel || !String(sel)) hideBar();
@@ -15407,8 +15539,7 @@ function dtPicker(mode, val, cb) {
       toast('已粘贴');
     } catch (e) { }
   }
-  document.addEventListener('mouseup', function () { setTimeout(show, 30); }, true);
-  document.addEventListener('touchend', function () { setTimeout(show, 120); }, true);
+  /* v39：选区菜单已统一，此套停用（样式保留） */
   document.addEventListener('selectionchange', function () {
     var sel = window.getSelection();
     if (!sel || !String(sel)) hide();
@@ -19875,8 +20006,7 @@ function patchDlg() {
     });
   }
 
-  document.addEventListener('mouseup', function () { setTimeout(showM, 20); }, true);
-  document.addEventListener('touchend', function () { setTimeout(showM, 70); }, true);
+  /* v39：选区菜单已统一，此套停用（::selection 高亮样式保留） */
   document.addEventListener('selectionchange', function () {
     var s4 = window.getSelection && window.getSelection();
     if (!s4 || !String(s4)) { /* 编辑态可能没走 Selection */ }
@@ -20122,6 +20252,8 @@ function patchDlg() {
     if (!hasSel()) { hideM(); return; }
     var card = document.querySelector('.nvcard');
     var ed = editable();
+    /* v39：编辑框里用系统原生菜单就够了，别再叠一个浮层 */
+    if (ed && (ed.tagName || '').toLowerCase() === 'textarea') { hideM(); return; }
     var host = ed || card;
     if (!host) { hideM(); return; }
 
@@ -20144,11 +20276,11 @@ function patchDlg() {
     M.className = 'nvsel2';
     M.innerHTML =
       '<button data-a="all">全选</button>' +
-      '<button data-a="cut">剪切</button>' +
-      '<button data-a="copy">复制</button>' +
-      '<button data-a="paste">粘贴</button>' +
+      '<button data-a="copy">复制选中</button>' +
       '<span class="sp"></span>' +
-      '<button data-a="del" class="dg">删除</button>';
+      '<button data-a="copyall">复制全文…</button>' +
+      '<span class="sp"></span>' +
+      '<button data-a="close">完成</button>';
     document.body.appendChild(M);
 
     var mw = M.offsetWidth || 320;
@@ -20165,6 +20297,19 @@ function patchDlg() {
       var b = e.target && e.target.closest ? e.target.closest('button') : null;
       if (!b) return;
       var a = b.dataset.a;
+      if (a === 'close') { hideM(); return; }
+      if (a === 'copyall') {
+        hideM();
+        setTimeout(function () {
+          try {
+            var id = window.NOTE_LAST_VIEW || null;
+            var arr = id ? ((window.S && S.notes) || []).filter(function (x) { return x.id === id; }) : [];
+            if (arr.length) { noteCopyPanel(arr, { sel: noteCurSel() }); return; }
+            toast('请先打开一条便签', 'err');
+          } catch (x) { toast('请先打开一条便签', 'err'); }
+        }, 120);
+        return;
+      }
       if (a === 'all') {
         /* 全选：真的全选中，菜单保留，可接着复制/删除 */
         if (selectAll()) {
@@ -23341,12 +23486,11 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 .nefull #neT{min-height:44vh!important;height:auto!important}
 .sheet-b.nedit>.nelist{max-height:52vh!important;overflow-y:auto!important}
 /* 顶部两行常驻：滚多远都能切类型、改标题 */
-.sheet-b.nedit>.nehead{
+.sheet-b.nedit>.segline,.sheet-b.nedit>#neTitle{
   position:sticky!important;top:0!important;z-index:30!important;
-  background:var(--bg)!important;padding-top:2px!important;padding-bottom:2px!important;
-  box-shadow:0 6px 10px -8px rgba(0,0,0,.55)!important}
-
-
+  background:var(--bg)!important}
+.sheet-b.nedit>.segline{top:0!important;padding-top:2px!important;padding-bottom:4px!important}
+.sheet-b.nedit>#neTitle{top:44px!important}
 
 /* --- 4. 便签查看页：查找栏（含上/下一处）随内容滚走，必须拉到顶才点得到 --- */
 #nvFind{position:sticky!important;top:0!important;z-index:30!important;
@@ -23410,18 +23554,12 @@ html[data-theme="dusk"]{--tx3:#4a5568}
       if (parseFloat(cs.opacity) < 0.7) continue;           /* 半透明＝未启用，不管 */
       var c = firstColor(cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor);
       if (!c) continue;
-      /* 一律保持白色图标：改成深色会破坏整套图标的设计感（用户明确否决）。
-         底色过亮时靠更强的描边保住轮廓，不动 color。 */
       var L = lum(c[0], c[1], c[2]);
-      var want = L > 0.26 ? 'stroke' : 'plain';
+      var want = L > 0.26 ? 'dark' : 'light';
       if (sv.__icfx === want) continue;
       sv.__icfx = want;
-      sv.style.color = '';
-      if (want === 'stroke') {
-        sv.style.filter = 'drop-shadow(0 0 1.2px rgba(0,0,0,.95)) drop-shadow(0 1px 1.8px rgba(0,0,0,.6))';
-      } else {
-        sv.style.filter = '';
-      }
+      if (want === 'dark') { sv.style.color = '#141a2e'; sv.style.filter = 'none'; }
+      else { sv.style.color = ''; sv.style.filter = ''; }
     }
   }
   var t = null;
