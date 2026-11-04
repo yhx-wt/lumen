@@ -2294,7 +2294,7 @@ var TOOLS = [
 function appTools() {
   openSheet('tools', '工具箱', '', {
     onMount: function () {
-      $('#shBody').innerHTML = '<div class="hint" style="margin-bottom:12px">全部在本机运行，不上传任何内容</div>' +
+      $('#shBody').innerHTML = '<div class="hint hintbar" style="margin-bottom:12px">全部在本机运行，不上传任何内容</div>' +
         '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px">' +
         TOOLS.map(function (t) {
           return '<button class="app" data-t="' + t.id + '"><span class="ic" style="background:linear-gradient(135deg,#64748B,#475569)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">' + TOOLI[t.i] + '</svg></span><span>' + t.n + '</span></button>';
@@ -3463,7 +3463,7 @@ function helpDlg() {
 function kbd(t) { return '<b style="display:inline-block;min-width:96px;color:var(--tx)">' + t + '</b>'; }
 function aboutDlg() {
   openDlg({
-    title: '关于晨昏 LUMEN', sub: 'v' + (window.APP_VER || '3.2·b41') + ' · 单文件、零依赖、离线可用',
+    title: '关于晨昏 LUMEN', sub: 'v' + (window.APP_VER || '3.2·b42') + ' · 单文件、零依赖、离线可用',
     body: '<div class="hint" style="line-height:1.9">' +
       '晨昏是一个把一天装进口袋的个人工作台：主页看时间与天气，应用页按需取用，数据页回看过往，我的页调整成你自己的样子。<br><br>' +
       '· 所有数据保存在本机浏览器，不上传任何服务器<br>' +
@@ -10817,7 +10817,7 @@ function noteCalendar() {
       '<button class="btn sm" id="cPrev">‹</button>' +
       '<b style="flex:1;text-align:center;font-size:var(--f15)">' + y + '年' + (m + 1) + '月</b>' +
       '<button class="btn sm" id="cNext">›</button></div>' +
-      '<div class="calw">' + MON.map(function (x) { return '<span class="calh">' + x + '</span>'; }).join('') +
+      '<div class="calw ncalw">' + MON.map(function (x) { return '<span class="calh">' + x + '</span>'; }).join('') +
       Array(wd).fill('<span class="cald empty"></span>').join('');
     for (var i = 1; i <= dim; i++) {
       var key = y + '-' + pad(m + 1) + '-' + pad(i);
@@ -10842,19 +10842,29 @@ function noteCalendar() {
   }
   function calDay(key) {
     var box = $('#calList'); if (!box) return;
+    $$('.ncalw .cald[data-d]').forEach(function (el) {
+      el.classList.toggle('sel', el.dataset.d === key);
+    });
     var l = (S.notes || []).filter(function (n) {
       if (n.del) return false;
       return ds(new Date(n.at)).slice(0, 10) === key ||
         (n.remind && n.remind.at && ds(new Date(n.remind.at)).slice(0, 10) === key);
     });
-    box.innerHTML = '<div class="ch" style="margin-bottom:6px"><h3>' + key + '（' + l.length + '）</h3></div>' +
+    box.innerHTML = '<div class="ch" style="margin-bottom:8px"><h3>' + key + '（' + l.length + '）</h3>' +
+      '<span class="xs mut2">' + (l.length ? '点条目查看' : '') + '</span></div>' +
       (l.length ? l.map(function (n) {
-        return '<div class="nrow" data-id="' + n.id + '" style="margin-bottom:5px">' +
+        var tm = new Date(n.at);
+        var hasR = !!(n.remind && n.remind.at);
+        return '<div class="nrow calnote" data-id="' + n.id + '">' +
           '<span class="ndot" style="background:' + noteBg(n.color) + '"></span>' +
-          '<span class="nmain"><b class="nrt">' + (n.important ? '★' : '') + esc(noteTitle(n) || '无标题') + '</b>' +
-          '<span class="nrs">' + esc(noteExcerpt(n, 34) || '（空）') + '</span></span>' +
-          '<span class="nrmeta">' + (n.remind && n.remind.at ? '<span class="nrb r">⏰' + pad(new Date(n.remind.at).getHours()) + ':' + pad(new Date(n.remind.at).getMinutes()) + '</span>' : '') + '</span></div>';
-      }).join('') : '<div class="hint">这天没有便签</div>');
+          '<span class="nmain"><b class="nrt">' + (n.important ? '★ ' : '') + esc(noteTitle(n) || '无标题') + '</b>' +
+          '<span class="nrs">' + esc(noteExcerpt(n, 34) || '（空）') + '</span>' +
+          '<span class="nrtime">' + (hasR ? '⏰ ' + pad(new Date(n.remind.at).getHours()) + ':' + pad(new Date(n.remind.at).getMinutes()) + ' 提醒 · ' : '') +
+          '🕒 ' + pad(tm.getHours()) + ':' + pad(tm.getMinutes()) + '</span></span>' +
+          '<span class="nrmeta">' + (hasR ? '<span class="nrb r">⏰</span>' : '') + '</span></div>';
+      }).join('') :
+      '<div class="calempty"><span style="font-size:22px">📝</span><b>这天没有便签</b>' +
+      '<small>点上方任意日期，可切换查看当天记录</small></div>');
     $$('#calList .nrow').forEach(function (el) {
       el.onclick = function () { noteView(el.dataset.id); };
     });
@@ -11268,7 +11278,8 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.2·b41';
+var APP_VER = '3.2·b42';
+window.APP_VER = APP_VER;
 
 /* ========== 全局工具：找真正的滚动容器 ==========
    #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
@@ -19833,6 +19844,92 @@ html[data-theme="dusk"]{--tx3:#4a5568}
 
 /* --- 4. 选中态文字（如数据页 30 天）：强调色底上用主文字色，保证可读 --- */
 .seg button.on{color:var(--tx)!important}
+</style>
+
+
+<style id="qV42Fix">
+/* ================= V42 便签细节修复 =================
+   1) 编辑页 #neTitle 原为 sticky top:44px，与 .nefull 重叠 36px（标题盖住正文）
+   2) 便签日历 .cald 边框透明、gap 3px，整月连成一片，没有分格
+   3) 当日列表裸 hint、无选中反馈、有便签/提醒标记过弱 */
+
+/* ---- ① 编辑页：标题 / 正文 / 底部操作 三段分区，互不覆盖 ---- */
+.sheet-b.nedit{display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;gap:8px;
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px))!important}
+.sheet-b.nedit>.segline{position:static!important;flex:0 0 auto;margin:0 16px!important}
+.sheet-b.nedit>#neTitle{position:relative!important;top:auto!important;z-index:auto!important;
+  flex:0 0 auto!important;width:auto!important;height:40px!important;margin:0 16px!important;
+  background:var(--surf2)!important;border:1px solid var(--line)!important;
+  border-radius:12px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.09)}
+.sheet-b.nedit>#neTitle::placeholder{color:var(--tx3);opacity:.8;font-weight:400}
+.sheet-b.nedit>.nefull,.sheet-b.nedit>.nelist{
+  position:relative!important;left:auto!important;right:auto!important;
+  top:auto!important;bottom:auto!important;height:auto!important;max-height:none!important;
+  flex:1 1 auto!important;min-height:210px!important;margin:0 16px!important;
+  overflow:hidden!important}
+.sheet-b.nedit>.nelist{overflow-y:auto!important}
+.nefull #neT{height:100%!important;min-height:0!important;flex:1 1 auto!important;
+  padding:4px 60px 8px 2px!important;box-sizing:border-box!important;
+  line-height:1.8;resize:none}
+.nefull #neT::placeholder{color:var(--tx3);opacity:.72}
+.sheet-b.nedit>.row,.sheet-b.nedit>.btn,.sheet-b.nedit>.xs{margin-left:16px!important;margin-right:16px!important;flex:0 0 auto}
+/* 右下悬浮工具：缩小、半透明，且正文右侧已留 60px 安全区 */
+.ntfabs{gap:7px!important;right:10px!important}
+.ntfab{width:48px!important;height:48px!important;border-radius:14px!important;
+  background:color-mix(in srgb,var(--surf) 90%,transparent)!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.ntfab .i{font-size:var(--f17)!important}
+
+/* ---- ② 日历：每个日期都是独立格子 ---- */
+.ncalw{background:var(--surf2);border:1px solid var(--line);border-radius:16px;
+  padding:7px;gap:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.ncalw .calh{font-size:var(--f11);color:var(--tx3);padding:3px 0 6px;letter-spacing:.05em}
+.ncalw .cald{aspect-ratio:1;min-height:40px;border-radius:9px;color:var(--tx);
+  border:1px solid color-mix(in srgb,var(--tx3) 26%,transparent)!important;
+  background:var(--surf)!important;transition:background .16s,border-color .16s,transform .16s}
+.ncalw .cald b{font-size:var(--f13);font-weight:600}
+.ncalw .cald.empty{border-color:transparent!important;background:transparent!important}
+.ncalw .cald.has{background:color-mix(in srgb,var(--a1) 9%,var(--surf))!important;
+  border-color:color-mix(in srgb,var(--a1) 32%,transparent)!important}
+.ncalw .cald.today{border-color:var(--a1)!important;color:var(--a1);
+  background:color-mix(in srgb,var(--a1) 12%,var(--surf))!important}
+.ncalw .cald.sel{background:linear-gradient(135deg,var(--a1),var(--a2))!important;
+  border-color:transparent!important;color:#fff;font-weight:700;
+  box-shadow:0 6px 16px -8px color-mix(in srgb,var(--a1) 90%,transparent)}
+.ncalw .cald.sel b{color:#fff}
+.ncalw .cald i em{width:5px;height:5px;box-shadow:0 0 0 1px rgba(0,0,0,.14)}
+.ncalw .cald.sel i em{box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+#cPrev,#cNext{flex:0 0 52px!important;height:36px;border-radius:12px;font-size:var(--f17)}
+em.lgd.ct,em.lgd.rd{width:7px;height:7px}
+
+/* ---- ③ 当日列表：逐条分格 + 时间行 + 空态卡片 ---- */
+#calList .calnote{margin:0 0 9px;padding:11px 12px;gap:10px;min-height:64px;
+  border:1px solid var(--line);border-left:3px solid var(--a1);
+  border-radius:13px;background:var(--surf2)}
+#calList .calnote:active{transform:scale(.99);border-color:var(--a1)}
+#calList .calnote .nrt{font-size:var(--f14)}
+#calList .calnote .nrs{margin-top:2px}
+#calList .nrtime{display:block;font-size:var(--f10);color:var(--tx3);margin-top:5px;letter-spacing:.02em}
+.calempty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:22px 14px;border:1px dashed color-mix(in srgb,var(--tx3) 42%,transparent);
+  border-radius:14px;background:var(--surf2);color:var(--tx3);text-align:center}
+.calempty b{font-size:var(--f13);color:var(--tx2);font-weight:600}
+.calempty small{font-size:var(--f11);opacity:.75}
+
+/* ---- ④ 同类细节：宽按钮不再撑出屏幕 / 顶部「今天」不折行 / 工具组成组 ---- */
+.sheet-b.nedit>.btn.wide{width:auto!important}
+#shActs .iconbtn[data-act="today"]{width:auto!important;padding:0 11px!important;
+  white-space:nowrap;flex:0 0 auto}
+.ntfabs{padding:6px!important;border-radius:20px!important;
+  border:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 62%,transparent)!important;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.ntfab{border-color:transparent!important;box-shadow:none!important}
+/* 裸说明文字统一为淡提示条 */
+.hintbar{padding:9px 12px!important;border:1px solid var(--line)!important;
+  border-radius:12px;background:var(--surf2)!important;color:var(--tx3)!important;
+  font-size:var(--f11)!important}
 </style>
 
 <!-- v41：移除「彩色块图标自动变黑」脚本。应用图标恒为白色，不再运行时改色。 -->
