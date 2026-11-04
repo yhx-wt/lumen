@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="晨昏 LUMEN">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A1E3A"/><stop offset="1" stop-color="#0B0C11"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="26%" r="62%">
+      <stop offset="0" stop-color="#5A3A9A" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#5A3A9A" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="cres">
+      <circle cx="225" cy="271" r="120" fill="#fff"/>
+      <circle cx="284" cy="207" r="112" fill="#000"/>
+    </mask>
+    <radialGradient id="sunGlow">
+      <stop offset="0" stop-color="#F5A623" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#F5A623" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="115" fill="url(#glow)"/>
+  <circle cx="376" cy="146" r="76" fill="url(#sunGlow)"/>
+  <rect width="512" height="512" fill="#F4F6FA" mask="url(#cres)"/>
+  <circle cx="376" cy="146" r="27" fill="#F7BE4E"/>
+</svg>

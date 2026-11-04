@@ -1,19 +1,17 @@
 /* ============================================================================
-   LUMEN Service Worker
+   LUMEN Service Worker · v41
    ----------------------------------------------------------------------------
-   策略：
-     · 主文档（导航请求）—— 网络优先，失败回落缓存；保证每次发布都能拿到新版
-     · 静态资源 —— 缓存优先 + 后台顺带更新（stale-while-revalidate）
-     · 版本自更新 —— 读取 manifest.json 里的 version 字段作为缓存名；
-                     发布新版本时只要改 manifest.json 的 version 即可，
-                     不必再手动改本文件里的版本号。
+   · 缓存名写死在本文件：发布新版改 CACHE 一处即可（浏览器只在 sw.js 字节
+     变化时才重装 SW，靠 manifest.version 动态取名会在 SW 重启后漂移）
+   · 核心资源逐个缓存，任一失败不影响其余；图标为可选资源，缺图不拖垮离线
+   · 导航请求：网络优先，失败回落缓存（保证每次发布都拿到新版）
+   · 其它资源：缓存优先 + 后台顺带更新
+   · activate 只清理 lumen- 前缀的旧缓存，不误删同域其它应用的缓存
    ========================================================================== */
 
-const FALLBACK_CACHE = 'lumen-v40';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
+const CACHE = 'lumen-v41';
+const CORE = ['./', './index.html', './manifest.json'];
+const OPTIONAL = [
   './icon.svg',
   './icon-192.png',
   './icon-512.png',
@@ -22,28 +20,6 @@ const ASSETS = [
   './og-image.png'
 ];
 
-let CACHE = FALLBACK_CACHE;
-
-/* 读取 manifest.json 里的版本号，作为缓存名 */
-async function resolveVersion() {
-  try {
-    const r = await fetch('./manifest.json', { cache: 'reload' });
-    if (!r || !r.ok) return CACHE;
-    const j = await r.json();
-    if (j && j.version) {
-      CACHE = 'lumen-v' + j.version;
-      return CACHE;
-    }
-  } catch (e) { /* 离线时沿用当前缓存名 */ }
-  return CACHE;
-}
-
-/* 打开当前版本的缓存 */
-function openCache() {
-  return caches.open(CACHE);
-}
-
-/* 导航请求判定 */
 function isDocRequest(req) {
   return req.mode === 'navigate' ||
     (req.headers.get('accept') || '').indexOf('text/html') > -1;
@@ -51,10 +27,22 @@ function isDocRequest(req) {
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
-    await resolveVersion();
-    const c = await openCache();
-    await c.addAll(ASSETS).catch(() => {});
+    const c = await caches.open(CACHE);
+    /* 逐个 add：任一 404 只影响自己，不会让 addAll 整体失败 */
+    await Promise.all(CORE.map(u => c.add(u).catch(() => {})));
+    await Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})));
     await self.skipWaiting();              /* 装完立刻接管，不等旧页面关闭 */
+  })());
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys.filter(k => k.indexOf('lumen-') === 0 && k !== CACHE)
+          .map(k => caches.delete(k))
+    );
+    await self.clients.claim();
   })());
 });
 
@@ -68,13 +56,12 @@ self.addEventListener('fetch', e => {
       try {
         const net = await fetch(req);
         if (net && net.ok) {
-          const copy = net.clone();
-          const c = await openCache();
-          c.put('./index.html', copy).catch(() => {});
+          const c = await caches.open(CACHE);
+          c.put('./index.html', net.clone()).catch(() => {});
         }
         return net;
       } catch (err) {
-        const c = await openCache();
+        const c = await caches.open(CACHE);
         const hit = await c.match('./index.html') || await c.match('./');
         if (hit) return hit;
         return new Response(
@@ -95,25 +82,13 @@ self.addEventListener('fetch', e => {
 
   /* ---- 其它静态资源：缓存优先，同时后台更新 ---- */
   e.respondWith((async () => {
-    const c = await openCache();
+    const c = await caches.open(CACHE);
     const hit = await c.match(req);
-    const net = fetch(req).then(async (r) => {
-      if (r && r.ok) {
-        const copy = r.clone();
-        c.put(req, copy).catch(() => {});
-      }
+    const net = fetch(req).then(async r => {
+      if (r && r.ok) c.put(req, r.clone()).catch(() => {});
       return r;
     }).catch(() => null);
     return hit || (await net) || Response.error();
-  })());
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil((async () => {
-    await resolveVersion();
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
-    await self.clients.claim();
   })());
 });
 

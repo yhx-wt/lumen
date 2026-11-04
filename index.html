@@ -3463,7 +3463,7 @@ function helpDlg() {
 function kbd(t) { return '<b style="display:inline-block;min-width:96px;color:var(--tx)">' + t + '</b>'; }
 function aboutDlg() {
   openDlg({
-    title: '关于晨昏 LUMEN', sub: 'v3.0 · 单文件、零依赖、离线可用',
+    title: '关于晨昏 LUMEN', sub: 'v' + (window.APP_VER || '3.2·b41') + ' · 单文件、零依赖、离线可用',
     body: '<div class="hint" style="line-height:1.9">' +
       '晨昏是一个把一天装进口袋的个人工作台：主页看时间与天气，应用页按需取用，数据页回看过往，我的页调整成你自己的样子。<br><br>' +
       '· 所有数据保存在本机浏览器，不上传任何服务器<br>' +
@@ -4879,10 +4879,13 @@ function drawSchulte() {
     '<div class="tbar" style="margin-top:10px"><i id="sBar" style="width:0"></i></div>' +
     '<div class="xs mut2" style="margin-top:5px">已点 <b id="sCnt">0</b>/' + total + ' · 错 <b id="sErr">0</b> 次' + (SB.showNext ? '' : ' · 未开启提示') + '</div>' +
     '</div>' +
-    '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩</h3><span class="sp">' + (hist.length ? '<button class="mini" id="sRank">排行 ›</button> <button class="mini dg" id="sClr">清空</button>' : '') + '</span></div>' +
+    '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>成绩 <span class="xs mut2" style="font-weight:400">· 点宫格看该宫格排行</span></h3><span class="sp">' + (hist.length ? '<button class="mini" id="sRank">全部排行 ›</button> <button class="mini dg" id="sClr">清空</button>' : '') + '</span></div>' +
     '<div class="row" style="gap:7px;margin-bottom:10px">' + [3, 4, 5, 6].map(function (n) {
       var b = S.game.schulte[n];
-      return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:10px;padding:7px 2px"><span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b></span>';
+      var cnt = hist.filter(function (h) { return num(h.n, 5) === n; }).length;
+      return '<button type="button" data-srn="' + n + '" style="flex:1;min-width:0;text-align:center;background:var(--surf2);border:1px solid color-mix(in srgb,var(--tx3) 28%,transparent);border-radius:12px;padding:7px 2px;color:var(--tx);font:inherit;cursor:pointer">' +
+        '<span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b>' +
+        '<span class="xs mut2" style="display:block;margin-top:2px">' + (cnt ? '排行 ›' : '暂无') + '</span></button>';
     }).join('') + '</div>' +
     '<div class="sbstd">参考（20 岁左右成年人，数字模式）：' + [3, 4, 5, 6].map(function (n) {
       var s = SBSTD[n]; return n + '×' + n + ' 优≤' + s[0] + '" 良≤' + s[1] + '"';
@@ -4924,7 +4927,10 @@ function drawSchulte() {
     confirmBox('清空成绩', '历史记录也会删除', function () { S.game.schulte = {}; S.game.history = []; save(); drawSchulte(); }, '清空');
   };
   var rk = $('#sRank');
-  if (rk) rk.onclick = function () { schulteRank(); };
+  if (rk) rk.onclick = function () { schulteRank('all', 'all'); };
+  $$('#shBody [data-srn]').forEach(function (b) {
+    b.onclick = function () { schulteRank(+b.dataset.srn, 'all'); };
+  });
   histBind('#shBody', null, function (idx) {
     S.game.history.splice(+idx, 1);
     save(); drawSchulte(); toast('已删除这条成绩');
@@ -4940,7 +4946,10 @@ function drawSchulte() {
   } else drawGrid();
 }
 
-/* ---------- 舒尔特：成绩排行（总览 / 分位 / 前20 / 全部历史，可删单条） ---------- */
+/* ---------- v41 舒尔特：按宫格 / 模式分别排行 ----------
+   3×3 与 6×6 难度不同，混在一起排序没有意义。
+   成绩卡上四个最佳成绩格子各自可点，进入该宫格的排行；
+   排行页顶部还能再切宫格与模式（数字 / 倒序 / 字母）。 */
 function srModeName(m) { return m === 'num' ? '数字' : m === 'rev' ? '倒序' : '字母'; }
 function srTimeOf(ts) {
   var d = new Date(ts);
@@ -4953,10 +4962,26 @@ function srStatBox(k, v) {
     '<span class="xs mut" style="display:block">' + k + '</span>' +
     '<b style="font-size:var(--f17)">' + v + '</b></span>';
 }
-function schulteRank() {
-  var hist = (S.game.history || []).slice().sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
+function srFilterBar(n, mode) {
+  var nb = ['all', 3, 4, 5, 6].map(function (v) {
+    return '<button data-v="' + v + '">' + (v === 'all' ? '全部' : v + '×' + v) + '</button>';
+  }).join('');
+  var mb = [['all', '全部'], ['num', '数字'], ['rev', '倒序'], ['letter', '字母']].map(function (x) {
+    return '<button data-v="' + x[0] + '">' + x[1] + '</button>';
+  }).join('');
+  return '<div class="card" style="margin-bottom:10px">' +
+    '<div class="fld"><label>宫格</label><div class="segline sm" id="srN">' + nb + '</div></div>' +
+    '<div class="fld" style="margin-top:10px"><label>模式</label><div class="segline sm" id="srM">' + mb + '</div></div>' +
+    '<div class="xs mut2" style="margin-top:8px">不同宫格难度不同，这里只统计当前选中的组合。切换上方选项可看其它组合。</div></div>';
+}
+function schulteRank(n, mode) {
+  n = (n === undefined || n === null) ? 'all' : n;
+  mode = mode || 'all';
+  var hist = (S.game.history || []).filter(function (h) {
+    return (n === 'all' || num(h.n, 5) === +n) && (mode === 'all' || sbModeOf(h) === mode);
+  }).sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
   var N = hist.length;
-  if (!N) { toast('还没有成绩'); return; }
+  if (!N) { toast('这个组合还没有成绩'); return; }
   var sum = 0;
   hist.forEach(function (h) { sum += num(h.sec, 0); });
   var avg = sum / N;
@@ -4966,7 +4991,8 @@ function schulteRank() {
     return { rank: k, rec: hist[k - 1] };
   }
   var p5 = pctOf(5), p10 = pctOf(10), p20 = pctOf(20);
-  var h = '';
+  var label = (n === 'all' ? '全部宫格' : n + '×' + n) + ' · ' + (mode === 'all' ? '全部模式' : srModeName(mode));
+  var h = srFilterBar(n, mode);
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>总览</h3></div>' +
     '<div class="row" style="gap:7px">' +
     srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(1) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(1) + '"') +
@@ -4977,7 +5003,7 @@ function schulteRank() {
     srStatBox('前 10%', '第 ' + p10.rank + ' 名<br>' + num(p10.rec.sec, 0).toFixed(1) + '"') +
     srStatBox('前 20%', '第 ' + p20.rank + ' 名<br>' + num(p20.rec.sec, 0).toFixed(1) + '"') +
     '</div>' +
-    '<div class="xs mut2" style="margin-top:7px">分位线＝排在这个百分比最末位的成绩，例如前 5% 表示你最快的一批成绩里最慢的那次。</div></div>';
+    '<div class="xs mut2" style="margin-top:7px">分位线＝排在这个百分比最末位的成绩。记录越多，分位线越有参考意义。</div></div>';
   var top = hist.slice(0, 20);
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>前 ' + top.length + ' 名</h3></div>' +
     top.map(function (r, i) {
@@ -4997,7 +5023,9 @@ function schulteRank() {
         '<br><span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
     }).join('') + '</div></div>';
-  openSheet('srank', '成绩排行', h, { back: function () { drawSchulte(); } });
+  openSheet('srank', '成绩排行 · ' + label, h, { back: function () { drawSchulte(); } });
+  bindSeg('#srN', String(n), function (v) { schulteRank(v === 'all' ? 'all' : +v, mode); });
+  bindSeg('#srM', mode, function (v) { schulteRank(n, v); });
   $$('#shBody [data-srdel]').forEach(function (b) {
     b.onclick = function () {
       var ts = +b.dataset.srdel;
@@ -5014,7 +5042,10 @@ function schulteRank() {
             if (!S.game.schulte[k] || v < S.game.schulte[k]) S.game.schulte[k] = v;
           });
           save(); chimeSoft(); toast('已删除');
-          if (!(S.game.history || []).length) drawSchulte(); else schulteRank();
+          var left = (S.game.history || []).filter(function (x) {
+            return (n === 'all' || num(x.n, 5) === +n) && (mode === 'all' || sbModeOf(x) === mode);
+          });
+          if (!left.length) drawSchulte(); else schulteRank(n, mode);
         }, '删除');
     };
   });
@@ -11237,7 +11268,7 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.2·b40';
+var APP_VER = '3.2·b41';
 
 /* ========== 全局工具：找真正的滚动容器 ==========
    #shBody 有四种形态：默认可滚 / .nedit 不可滚 / .nvfull 不可滚 / 平板补丁再锁一次。
@@ -14182,8 +14213,8 @@ function notify2(title, body, opt) {
       var n = new Notification(title, {
         body: body || '',
         tag: tag,
-        icon: opt.icon || './icons/icon-192.png',
-        badge: './icons/icon-192.png',
+        icon: opt.icon || './icon-192.png',
+        badge: './icon-192.png',
         requireInteraction: !!opt.sticky,     /* 重要事件：不自动消失 */
         silent: !!opt.silent,
         data: { url: location.href }
@@ -19789,11 +19820,8 @@ html[data-theme="dusk"] .card{box-shadow:0 1px 2px rgba(24,40,68,.06)}
 <style id="qV36Fix">
 /* ===================== V36 视觉统一修复 ===================== */
 
-/* --- 1. 应用图标：白色图标压在亮色块（黄/绿/粉/浅蓝）上，对比仅 1.6~2.9，几乎看不见。
-        给图标加深色描边轮廓，保留白色图标的设计感，但在任何底色上都能辨形。 --- */
-.app .ic svg,.dapp svg,.appcard .ic svg,.qk .ic svg{
-  filter:drop-shadow(0 0 .7px rgba(0,0,0,.9)) drop-shadow(0 1px 1.4px rgba(0,0,0,.5))!important;
-}
+/* --- 1. 应用图标：恒为纯白，不描边、不自动改色（v41 按用户要求回滚） --- */
+.app .ic svg,.dapp svg,.appcard .ic svg,.qk .ic svg{filter:none!important}
 
 /* --- 2. 分段选择器：未选中项边框透明，浅色下四个格子连成一片，看不出边界。
         给未选中项加淡边框；选中项保持强调色边框（.on 优先级更高）。 --- */
@@ -19807,52 +19835,6 @@ html[data-theme="dusk"]{--tx3:#4a5568}
 .seg button.on{color:var(--tx)!important}
 </style>
 
-<script>
-/* ===== V36：彩色块上的图标自动取色 =====
-   应用图标是白色 svg 压在彩色块上。深色块（深紫、石板灰）没问题，
-   但亮色块（黄 #FBBF24、绿 #4ADE80、粉 #FF62AD、浅蓝 #38BDF8）上对比只有 1.6~2.9，
-   浅色主题下几乎看不见。这里按底色亮度自动切换：亮底用深色图标，暗底保持白色。 */
-(function () {
-  function lum(r, g, b) {
-    var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
-    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-  }
-  function firstColor(s) {
-    s = String(s || '');
-    var m = s.match(/rgba?\(([^)]+)\)/);
-    if (m) { var p = m[1].split(',').map(parseFloat); if (p.length >= 3 && (p.length < 4 || p[3] > 0.5)) return [p[0], p[1], p[2]]; }
-    m = s.match(/#([0-9a-fA-F]{6})/);
-    if (m) { var h = m[1]; return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
-    m = s.match(/#([0-9a-fA-F]{3})\b/);
-    if (m) { var q = m[1]; return [parseInt(q[0] + q[0], 16), parseInt(q[1] + q[1], 16), parseInt(q[2] + q[2], 16)]; }
-    return null;
-  }
-  function fix() {
-    var els = document.querySelectorAll('.ic > svg, .dapp > svg, .appcard .ic > svg, .qk .ic > svg');
-    for (var i = 0; i < els.length; i++) {
-      var sv = els[i], host = sv.parentElement;
-      if (!host) continue;
-      var cs = getComputedStyle(host);
-      if (parseFloat(cs.opacity) < 0.7) continue;           /* 半透明＝未启用，不管 */
-      var c = firstColor(cs.backgroundImage !== 'none' ? cs.backgroundImage : cs.backgroundColor);
-      if (!c) continue;
-      var L = lum(c[0], c[1], c[2]);
-      var want = L > 0.26 ? 'dark' : 'light';
-      if (sv.__icfx === want) continue;
-      sv.__icfx = want;
-      if (want === 'dark') { sv.style.color = '#141a2e'; sv.style.filter = 'none'; }
-      else { sv.style.color = ''; sv.style.filter = ''; }
-    }
-  }
-  var t = null;
-  function kick() { if (t) clearTimeout(t); t = setTimeout(fix, 60); }
-  if (window.MutationObserver) {
-    try { new MutationObserver(kick).observe(document.body, { childList: true, subtree: true }); } catch (e) { }
-  }
-  window.addEventListener('load', function () { fix(); setTimeout(fix, 400); });
-  if (document.readyState !== 'loading') { fix(); setTimeout(fix, 400); }
-  setInterval(fix, 1500);
-})();
-</script>
+<!-- v41：移除「彩色块图标自动变黑」脚本。应用图标恒为白色，不再运行时改色。 -->
 </body>
 </html>
