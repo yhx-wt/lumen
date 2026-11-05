@@ -9,7 +9,7 @@
    · activate 只清理 lumen- 前缀的旧缓存，不误删同域其它应用的缓存
    ========================================================================== */
 
-const CACHE = 'lumen-v42';
+const CACHE = 'lumen-v43';
 const CORE = ['./', './index.html', './manifest.json'];
 const OPTIONAL = [
   './icon.svg',

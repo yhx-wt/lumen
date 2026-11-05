@@ -2181,7 +2181,7 @@ function sbStart() {
   for (var j = arr.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)), t = arr[j]; arr[j] = arr[k]; arr[k] = t; }
   SB.cells = arr;
   clearInterval(SB.timer);
-  SB.timer = setInterval(function () { var e = $('#sTime'); if (e) e.textContent = ((Date.now() - SB.t0) / 1000).toFixed(1) + '"'; }, 100);
+  SB.timer = setInterval(function () { var e = $('#sTime'); if (e) e.textContent = ((Date.now() - SB.t0) / 1000).toFixed(2) + '"'; }, 50);
   var i2 = $('#sInfo'); if (i2) i2.textContent = SB.mode === 'letter' ? '从 A 开始按顺序找' : SB.mode === 'rev' ? '从 ' + total + ' 倒着找回来' : '从 1 开始按顺序找';
   drawGrid();
 }
@@ -3463,7 +3463,7 @@ function helpDlg() {
 function kbd(t) { return '<b style="display:inline-block;min-width:96px;color:var(--tx)">' + t + '</b>'; }
 function aboutDlg() {
   openDlg({
-    title: '关于晨昏 LUMEN', sub: 'v' + (window.APP_VER || '3.2·b42') + ' · 单文件、零依赖、离线可用',
+    title: '关于晨昏 LUMEN', sub: 'v' + (window.APP_VER || '3.2·b43') + ' · 单文件、零依赖、离线可用',
     body: '<div class="hint" style="line-height:1.9">' +
       '晨昏是一个把一天装进口袋的个人工作台：主页看时间与天气，应用页按需取用，数据页回看过往，我的页调整成你自己的样子。<br><br>' +
       '· 所有数据保存在本机浏览器，不上传任何服务器<br>' +
@@ -3828,6 +3828,20 @@ function homeAchHtml() {
     '.sbjudge .jl{font-size:var(--f19);font-weight:700;margin-top:4px}',
     '.sbjudge .jt{font-size:var(--f13);color:var(--tx2);margin-top:3px;line-height:1.5}',
     '.sbstd{font-size:var(--f11);color:var(--tx3);line-height:1.6;margin-top:8px}',
+
+    /* v43 本局击败率 */
+    '.sbbeat{margin-top:10px;border:1px solid color-mix(in srgb,var(--bc) 45%,transparent);background:color-mix(in srgb,var(--bc) 9%,var(--surf2));border-radius:14px;padding:10px 12px;text-align:left;color:var(--tx)}',
+    '.sbbeat.rec{background:linear-gradient(135deg,color-mix(in srgb,var(--warn) 24%,var(--surf2)),var(--surf2));border-color:color-mix(in srgb,var(--warn) 60%,transparent)}',
+    '.sbbeat .bbTop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
+    '.sbbeat .bbIc{font-size:var(--f19);line-height:1;flex:0 0 auto}',
+    '.sbbeat .bbTxt{font-size:var(--f15);font-weight:600;line-height:1.4}',
+    '.sbbeat .bbTxt b{font-size:var(--f22);color:var(--bc);font-variant-numeric:tabular-nums}',
+    '.sbbeat.rec .bbTxt b{color:var(--warn)}',
+    '.sbbeat .bbAb{font-size:var(--f13);color:var(--bc);font-weight:700;font-variant-numeric:tabular-nums}',
+    '.sbbeat .bbSub{font-size:var(--f11);color:var(--tx2);margin-top:3px}',
+    '.sbbeat .bbBar{height:5px;border-radius:5px;background:var(--surf);margin-top:8px;overflow:hidden}',
+    '.sbbeat .bbBar i{display:block;height:100%;border-radius:5px;background:var(--bc);transition:width .45s ease}',
+    '.sbbeat .bbNote{font-size:var(--f11);color:var(--tx3);margin-top:6px;line-height:1.5}',
 
     '@media (max-height:700px){.histbox{max-height:170px}.qpick .qs button{font-size:var(--f30)}}'
   ].join('\n');
@@ -4873,7 +4887,7 @@ function drawSchulte() {
     '<button class="mini" data-m="num">数字</button><button class="mini" data-m="rev">倒序</button><button class="mini" data-m="letter">字母</button>' +
     '</div>' +
     '<div class="spread" style="margin-bottom:10px"><span class="sm mut" id="sInfo">' + (SB.on ? '进行中' : '按 1 → ' + total + ' 顺序点掉所有格子') + '</span>' +
-    '<b id="sTime" style="font-size:var(--f19);font-variant-numeric:tabular-nums">0.0"</b></div>' +
+    '<b id="sTime" style="font-size:var(--f19);font-variant-numeric:tabular-nums">0.00"</b></div>' +
     '<div class="schulte" id="sGrid" style="grid-template-columns:repeat(' + SB.n + ',1fr)"></div>' +
     '<div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" id="sStart" style="flex:1">开始</button><button class="btn" id="sStop" style="width:80px">结束</button></div>' +
     '<div class="tbar" style="margin-top:10px"><i id="sBar" style="width:0"></i></div>' +
@@ -4884,7 +4898,7 @@ function drawSchulte() {
       var b = S.game.schulte[n];
       var cnt = hist.filter(function (h) { return num(h.n, 5) === n; }).length;
       return '<button type="button" data-srn="' + n + '" style="flex:1;min-width:0;text-align:center;background:var(--surf2);border:1px solid color-mix(in srgb,var(--tx3) 28%,transparent);border-radius:12px;padding:7px 2px;color:var(--tx);font:inherit;cursor:pointer">' +
-        '<span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? b + '"' : '—') + '</b>' +
+        '<span class="xs mut" style="display:block">' + n + '×' + n + '</span><b style="font-size:var(--f15)">' + (b ? num(b, 0).toFixed(2) + '"' : '—') + '</b>' +
         '<span class="xs mut2" style="display:block;margin-top:2px">' + (cnt ? '排行 ›' : '暂无') + '</span></button>';
     }).join('') + '</div>' +
     '<div class="sbstd">参考（20 岁左右成年人，数字模式）：' + [3, 4, 5, 6].map(function (n) {
@@ -4896,7 +4910,7 @@ function drawSchulte() {
       var j = sbJudge(num(h.n, 5), num(h.sec, 0));
       return {
         id: String(idx),
-        l: num(h.sec, 0).toFixed(1) + '"  ' + j[0],
+        l: num(h.sec, 0).toFixed(2) + '"  ' + j[0],
         l2: h.n + '×' + h.n + ' ' + (sbModeOf(h) === 'num' ? '数字' : sbModeOf(h) === 'rev' ? '倒序' : '字母') + ' · ' + relLabel(sbDayKey(h)) + ' · 错 ' + num(h.err, 0) + ' 次',
         r: j[1], cls: ''
       };
@@ -4918,7 +4932,7 @@ function drawSchulte() {
     var L = ['【舒尔特历史】'];
     (S.game.history || []).forEach(function (h) {
       var j = sbJudge(num(h.n, 5), num(h.sec, 0));
-      L.push(relLabel(sbDayKey(h)) + '　' + h.n + '×' + h.n + '　' + h.sec + '"　错' + num(h.err, 0) + '次　' + j[0]);
+      L.push(relLabel(sbDayKey(h)) + '　' + h.n + '×' + h.n + '　' + num(h.sec, 0).toFixed(2) + '"　错' + num(h.err, 0) + '次　' + j[0]);
     });
     copy(L.join('\n'), '已复制成绩');
   };
@@ -4955,7 +4969,9 @@ function srTimeOf(ts) {
   var d = new Date(ts);
   if (isNaN(d.getTime())) return '—';
   var p = function (v) { return (v < 10 ? '0' : '') + v; };
-  return String(d.getFullYear()).slice(2) + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  var cs = String(Math.floor(d.getMilliseconds() / 10));
+  if (cs.length < 2) cs = '0' + cs;
+  return String(d.getFullYear()).slice(2) + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '.' + cs;
 }
 function srStatBox(k, v) {
   return '<span style="flex:1;text-align:center;background:var(--surf2);border-radius:12px;padding:9px 3px">' +
@@ -4982,6 +4998,10 @@ function schulteRank(n, mode) {
   }).sort(function (a, b) { return num(a.sec, 0) - num(b.sec, 0); });
   var N = hist.length;
   if (!N) { toast('这个组合还没有成绩'); return; }
+  /* v43：下面的「全部记录」单独按产生时间倒序，不再复用成绩序 */
+  var byTime = hist.slice().sort(function (a, b) {
+    return num(b.at, 0) - num(a.at, 0) || num(a.sec, 0) - num(b.sec, 0);
+  });
   var sum = 0;
   hist.forEach(function (h) { sum += num(h.sec, 0); });
   var avg = sum / N;
@@ -4995,32 +5015,34 @@ function schulteRank(n, mode) {
   var h = srFilterBar(n, mode);
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>总览</h3></div>' +
     '<div class="row" style="gap:7px">' +
-    srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(1) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(1) + '"') +
+    srStatBox('总次数', N + ' 次') + srStatBox('平均', avg.toFixed(2) + '"') + srStatBox('最佳', num(hist[0].sec, 0).toFixed(2) + '"') +
     '</div></div>';
   h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>分位线</h3></div>' +
     '<div class="row" style="gap:7px">' +
-    srStatBox('前 5%', '第 ' + p5.rank + ' 名<br>' + num(p5.rec.sec, 0).toFixed(1) + '"') +
-    srStatBox('前 10%', '第 ' + p10.rank + ' 名<br>' + num(p10.rec.sec, 0).toFixed(1) + '"') +
-    srStatBox('前 20%', '第 ' + p20.rank + ' 名<br>' + num(p20.rec.sec, 0).toFixed(1) + '"') +
+    srStatBox('前 5%', '第 ' + p5.rank + ' 名<br>' + num(p5.rec.sec, 0).toFixed(2) + '"') +
+    srStatBox('前 10%', '第 ' + p10.rank + ' 名<br>' + num(p10.rec.sec, 0).toFixed(2) + '"') +
+    srStatBox('前 20%', '第 ' + p20.rank + ' 名<br>' + num(p20.rec.sec, 0).toFixed(2) + '"') +
     '</div>' +
     '<div class="xs mut2" style="margin-top:7px">分位线＝排在这个百分比最末位的成绩。记录越多，分位线越有参考意义。</div></div>';
   var top = hist.slice(0, 20);
-  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>前 ' + top.length + ' 名</h3></div>' +
+  h += '<div class="card" style="margin-bottom:10px"><div class="ch"><h3>前 ' + top.length + ' 名 · 按成绩</h3></div>' +
     top.map(function (r, i) {
       return '<div class="spread" style="padding:8px 11px;background:var(--surf2);border-radius:10px;margin-bottom:6px;gap:8px">' +
         '<span class="sm" style="min-width:0;flex:1"><b style="color:var(--a1);display:inline-block;min-width:24px">' + (i + 1) + '.</b> ' +
-        '<b>' + num(r.sec, 0).toFixed(1) + '"</b> <span class="mut2 xs">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) +
+        '<b>' + num(r.sec, 0).toFixed(2) + '"</b> <span class="mut2 xs">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) +
         (num(r.err, 0) ? ' · 错' + num(r.err, 0) + '次' : '') + '</span><br>' +
         '<span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
     }).join('') + '</div>';
-  h += '<div class="card"><div class="ch"><h3>全部记录（' + N + '）</h3></div>' +
+  h += '<div class="card"><div class="ch"><h3>全部记录 · 按时间（' + N + '）</h3>' +
+    '<span class="sp"><span class="xs mut2">最新在前</span></span></div>' +
+    '<div class="xs mut2" style="margin-bottom:8px">这里按产生时间倒序，和上面按成绩排序的「前 20 名」不重复；时间精确到百分秒。</div>' +
     '<div style="max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch">' +
-    hist.map(function (r, i) {
+    byTime.map(function (r, i) {
       return '<div class="spread" style="padding:7px 11px;background:var(--surf2);border-radius:10px;margin-bottom:5px;gap:8px">' +
-        '<span class="sm" style="min-width:0;flex:1"><span class="mut2 xs">#' + (i + 1) + '</span> ' +
-        r.n + '×' + r.n + ' ' + srModeName(r.mode) + ' <b>' + num(r.sec, 0).toFixed(1) + '"</b>' +
-        '<br><span class="xs mut2">' + srTimeOf(r.at) + '</span></span>' +
+        '<span class="sm" style="min-width:0;flex:1"><span class="mut2 xs">时间 #' + (i + 1) + '</span> <b>' + srTimeOf(r.at) + '</b>' +
+        '<br><span class="xs mut2">' + r.n + '×' + r.n + ' ' + srModeName(r.mode) + ' · ' + num(r.sec, 0).toFixed(2) + '"' +
+        (num(r.err, 0) ? ' · 错 ' + num(r.err, 0) + ' 次' : '') + '</span></span>' +
         '<button class="mini dg" data-srdel="' + r.at + '">🗑</button></div>';
     }).join('') + '</div></div>';
   openSheet('srank', '成绩排行 · ' + label, h, { back: function () { drawSchulte(); } });
@@ -5032,7 +5054,7 @@ function schulteRank(n, mode) {
       var rec = (S.game.history || []).filter(function (x) { return x.at === ts; })[0];
       if (!rec) return;
       confirmBox('删除这条记录',
-        rec.n + '×' + rec.n + ' ' + srModeName(rec.mode) + '　' + num(rec.sec, 0).toFixed(1) + '"\n' + srTimeOf(ts) + '\n删除后无法恢复。',
+        rec.n + '×' + rec.n + ' ' + srModeName(rec.mode) + '　' + num(rec.sec, 0).toFixed(2) + '"\n' + srTimeOf(ts) + '\n删除后无法恢复。',
         function () {
           S.game.history = (S.game.history || []).filter(function (x) { return x.at !== ts; });
           S.game.schulte = {};
@@ -5059,7 +5081,7 @@ function drawSchulteHistOnly() {
   box.outerHTML = (hist.length ? histBox(hist.slice(0, 40).map(function (h, idx) {
     var j = sbJudge(num(h.n, 5), num(h.sec, 0));
     return {
-      id: String(idx), l: num(h.sec, 0).toFixed(1) + '"  ' + j[0],
+      id: String(idx), l: num(h.sec, 0).toFixed(2) + '"  ' + j[0],
       l2: h.n + '×' + h.n + ' ' + (sbModeOf(h) === 'num' ? '数字' : sbModeOf(h) === 'rev' ? '倒序' : '字母') + ' · ' + relLabel(sbDayKey(h)) + ' · 错 ' + num(h.err, 0) + ' 次',
       r: j[1], cls: ''
     };
@@ -6832,8 +6854,44 @@ function taskInfoDlg() {
 })();
 
 /* ============ 3. 舒尔特：结果弹窗带小叉 ============ */
+/* ---------- v43 本局击败率 ----------
+   只在「同宫格 + 同模式」内比较，口径与排行页一致；难度不同的宫格不混排。
+   a = 本局按用时升序的名次，b = 该组合保留的总次数（含本局）。 */
+function sbBeatInfo(sec, n, mode, isNew) {
+  var list = (S.game.history || []).filter(function (h) {
+    return num(h.n, 5) === n && sbModeOf(h) === mode;
+  });
+  var b = list.length, faster = 0, slower = 0;
+  list.forEach(function (h) {
+    var v = num(h.sec, 0);
+    if (v < sec - 0.005) faster++;
+    else if (v > sec + 0.005) slower++;
+  });
+  var a = faster + 1;
+  var pct = b > 1 ? Math.round(slower / (b - 1) * 100) : 0;
+  var t;
+  if (pct >= 90) t = { c: 'var(--warn)', i: '🔥', w: '碾压全场' };
+  else if (pct >= 70) t = { c: 'var(--ok)', i: '⚡', w: '状态很好' };
+  else if (pct >= 40) t = { c: 'var(--a1)', i: '👍', w: '中上水平' };
+  else if (pct >= 15) t = { c: 'var(--a2)', i: '🌱', w: '稳步上升' };
+  else t = { c: 'var(--tx2)', i: '💪', w: '继续加油' };
+  var rec = isNew && b > 1;          /* 破纪录：专门的金色样式 */
+  var first = b <= 1;                /* 首局：暂无对比对象 */
+  var color = rec ? 'var(--warn)' : t.c;
+  var icon = rec ? '🏆' : first ? '🎬' : t.i;
+  var head = rec ? '破纪录！击败 ' : first ? '首局 · 击败 ' : '击败 ';
+  var tail = rec ? ' <span class="xs mut">· 新最佳</span>'
+    : first ? ' <span class="xs mut">· 下局起开始对比</span>'
+      : ' <span class="xs mut">· ' + t.w + '</span>';
+  return '<div class="sbbeat' + (rec ? ' rec' : '') + '" style="--bc:' + color + '">' +
+    '<div class="bbTop"><span class="bbIc">' + icon + '</span>' +
+    '<span class="bbTxt">' + head + '<b>' + pct + '%</b><span class="bbAb">（' + a + '/' + b + '）</span>' + tail + '</span></div>' +
+    '<div class="bbSub">第 ' + a + ' 名 · 共 ' + b + ' 次 · ' + n + '×' + n + ' ' + srModeName(mode) + '</div>' +
+    '<div class="bbBar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="bbNote">同宫格 + 同模式 · 最近 300 局</div></div>';
+}
 function sbFinish() {
-  var sec = Math.round((Date.now() - SB.t0) / 100) / 10;
+  var sec = Math.round((Date.now() - SB.t0) / 10) / 100;
   clearInterval(SB.timer); SB.on = false;
   var key = SB.n + (SB.mode === 'num' ? '' : SB.mode);
   var prev = S.game.schulte[key];
@@ -6841,19 +6899,20 @@ function sbFinish() {
   if (isNew) S.game.schulte[key] = sec;
   S.game.history = S.game.history || [];
   S.game.history.unshift({ n: SB.n, mode: SB.mode, sec: sec, err: SB.err, at: Date.now(), day: today() });
-  S.game.history = S.game.history.slice(0, 60);
+  S.game.history = S.game.history.slice(0, 300); /* v43：总次数统计范围放宽到 300 局 */
   save(); chime();
   var j = sbJudge(SB.n, sec);
   var g = $('#sGrid');
   var panel = '<div class="sbjudge"><div class="je">' + j[1] + '</div>' +
     '<div class="jl" style="color:' + j[2] + '">' + j[0] + '</div>' +
-    '<div style="font-size:var(--f34);font-weight:680;letter-spacing:-.04em;margin-top:6px">' + sec.toFixed(1) + '"</div>' +
+    '<div style="font-size:var(--f34);font-weight:680;letter-spacing:-.04em;margin-top:6px">' + sec.toFixed(2) + '"</div>' +
     '<div class="jt">' + j[3] + '</div>' +
-    '<div class="xs mut2" style="margin-top:4px">' + (SB.n * SB.n) + ' 格 · 错 ' + SB.err + ' 次' + (isNew ? ' · 🎉 新纪录' : ' · 最佳 ' + S.game.schulte[key] + '"') + '</div></div>';
+    '<div class="xs mut2" style="margin-top:4px">' + (SB.n * SB.n) + ' 格 · 错 ' + SB.err + ' 次' + (isNew ? '' : ' · 最佳 ' + num(S.game.schulte[key], 0).toFixed(2) + '"') + '</div>' +
+    sbBeatInfo(sec, SB.n, SB.mode, isNew) + '</div>';
   if (g) g.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:14px 8px">' + panel +
     '<button class="btn primary" id="sAgain" style="margin-top:14px">再来一次</button></div>';
   var a = $('#sAgain'); if (a) a.onclick = sbStart;
-  var i3 = $('#sInfo'); if (i3) i3.textContent = '完成！' + sec.toFixed(1) + ' 秒 · ' + j[0];
+  var i3 = $('#sInfo'); if (i3) i3.textContent = '完成！' + sec.toFixed(2) + ' 秒 · ' + j[0];
   if (isNew) confetti();
   /* 结果用弹窗呈现，带右上小叉，可随时关掉回到棋盘 */
   openDlg({
@@ -6880,7 +6939,7 @@ function sbReset() {
   var i3 = $('#sInfo'); if (i3) i3.textContent = '按 1 → ' + (SB.n * SB.n) + ' 顺序点掉所有格子';
   var e2 = $('#sCnt'); if (e2) e2.textContent = '0';
   var e3 = $('#sErr'); if (e3) e3.textContent = '0';
-  var t2 = $('#sTime'); if (t2) t2.textContent = '0.0"';
+  var t2 = $('#sTime'); if (t2) t2.textContent = '0.00"';
   var b2 = $('#sBar'); if (b2) b2.style.width = '0';
 }
 
@@ -11278,7 +11337,7 @@ function nvBindFind() {
 /* ========== 统一版本号：一处定义，全局引用 ==========
    之前「关于」里写死 v3.1·b30、云同步里另写一个版本号，两处不一致，
    导致无法判断用户设备上真正跑的是哪一版。现在统一为 APP_VER。 */
-var APP_VER = '3.2·b42';
+var APP_VER = '3.2·b43';
 window.APP_VER = APP_VER;
 
 /* ========== 全局工具：找真正的滚动容器 ==========
